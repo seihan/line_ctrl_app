@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
-import 'package:line_ctrl_app/ui/screens/bluetooth_screens.dart';
+import 'package:line_ctrl_app/ui/screens/bluetooth_off_screen.dart';
 import 'package:line_ctrl_app/ui/screens/home.dart';
 
 void main() {
@@ -13,7 +13,7 @@ class LineCtrlApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      color: Colors.lightBlue,
+      theme: ThemeData.dark(),
       home: StreamBuilder<BluetoothState>(
           stream: FlutterBlue.instance.state,
           initialData: BluetoothState.unknown,
