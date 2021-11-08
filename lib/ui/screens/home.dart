@@ -31,29 +31,33 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton(
-                    child: const Text("push left"),
-                    onPressed: () async => controller.write(
-                        type: ControllerType.left, value: "100"),
-                  onLongPress: () async => controller.write(
-                        type: ControllerType.left, value: "100"),
-                  ),
-                  TextButton(
-                    child: const Text("push power"),
-                    onPressed: () async => controller.write(
-                        type: ControllerType.power, value: "100"),
-                  ),
-                  TextButton(
-                    child: const Text("push right"),
-                    onPressed: () async => controller.write(
-                        type: ControllerType.right, value: "100"),
-                  ),
-                ],
-              ),
-
+        child: StreamBuilder<List<BluetoothDevice>>(
+          stream: Stream.periodic(const Duration(seconds: 2))
+              .asyncMap((_) => FlutterBlue.instance.connectedDevices),
+          initialData: const [],
+          builder: (c, snapshot) => snapshot.data!.isNotEmpty
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(
+                      child: const Text("push left"),
+                      onPressed: () async => controller.write(
+                          type: ControllerType.left, value: 100),
+                    ),
+                    TextButton(
+                      child: const Text("push power"),
+                      onPressed: () async => controller.write(
+                          type: ControllerType.power, value: 100),
+                    ),
+                    TextButton(
+                      child: const Text("push right"),
+                      onPressed: () async => controller.write(
+                          type: ControllerType.right, value: 100),
+                    ),
+                  ],
+                )
+              : const CircularProgressIndicator(),
+        ),
       ),
       floatingActionButton: StreamBuilder<bool>(
         stream: FlutterBlue.instance.isScanning,
