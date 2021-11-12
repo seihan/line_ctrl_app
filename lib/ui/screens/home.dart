@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:line_ctrl_app/controller/line_controller.dart';
 import 'package:line_ctrl_app/controller/bluetooth_controller.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -11,19 +12,21 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late final BluetoothController controller;
+  late final LineController _lineController;
+  late final BluetoothController _bluetoothController;
 
   @override
   void initState() {
-    controller = BluetoothController();
-    controller.init();
-    controller.startScan();
+    _bluetoothController = BluetoothController();
+    _lineController = LineController();
+    _lineController.init();
     super.initState();
   }
 
   @override
   void dispose() {
-    controller.dispose;
+    _lineController.dispose();
+    _bluetoothController.dispose;
     super.dispose();
   }
 
@@ -31,27 +34,26 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: StreamBuilder<List<BluetoothDevice>>(
-          stream: Stream.periodic(const Duration(seconds: 2))
-              .asyncMap((_) => FlutterBlue.instance.connectedDevices),
-          initialData: const [],
-          builder: (c, snapshot) => snapshot.data!.isNotEmpty
+        child: StreamBuilder<bool>(
+          stream: _bluetoothController.connected,
+          initialData: false,
+          builder: (c, snapshot) => snapshot.data!
               ? Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     TextButton(
                       child: const Text("push left"),
-                      onPressed: () async => controller.write(
+                      onPressed: () async => _bluetoothController.write(
                           type: ControllerType.left, value: 100),
                     ),
                     TextButton(
                       child: const Text("push power"),
-                      onPressed: () async => controller.write(
+                      onPressed: () async => _bluetoothController.write(
                           type: ControllerType.power, value: 100),
                     ),
                     TextButton(
                       child: const Text("push right"),
-                      onPressed: () async => controller.write(
+                      onPressed: () async => _bluetoothController.write(
                           type: ControllerType.right, value: 100),
                     ),
                   ],
