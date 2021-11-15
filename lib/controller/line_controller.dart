@@ -14,13 +14,14 @@ class LineController {
   bool _connected = false;
   bool _left = false;
   int _bothValue = 0;
+  bool paused = false;
 
   void init() {
     _initBluetoothController();
     _initSensorController();
     _connectionState =
         _bluetoothController.connected.listen(_handleConnectionState);
-    _timer = Timer.periodic(const Duration(milliseconds: 200), _timerCallback);
+    _timer = Timer.periodic(const Duration(milliseconds: 50), _timerCallback);
   }
 
   void _timerCallback(Timer timer) {
@@ -45,15 +46,15 @@ class LineController {
   }
 
   void _handleSensorData(Vector2 vector2) async {
-    if (_connected && _send) {
-      if (vector2.x < 1) {
+    if (_connected && _send && !paused) {
+      if (vector2.x < 2) {
         if (vector2.y < 0) {
           if (_left) {
             _bluetoothController.write(
-                type: ControllerType.left, value: vector2.y.toInt());
+                type: ControllerType.left, value: vector2.y.toInt() * -1);
           } else {
             _bluetoothController.write(
-                type: ControllerType.right, value: vector2.y.toInt() * -1);
+                type: ControllerType.right, value: vector2.y.toInt());
           }
         } else {
           if (_left) {
@@ -75,6 +76,22 @@ class LineController {
         }
       }
       _send = false;
+    }
+  }
+
+  void write({required ControllerType type, int value = 0}) {
+    if (_send) {
+      switch (type) {
+        case ControllerType.left:
+          _bluetoothController.write(type: ControllerType.left, value: value);
+          break;
+        case ControllerType.power:
+          _bluetoothController.write(type: ControllerType.power, value: value);
+          break;
+        case ControllerType.right:
+          _bluetoothController.write(type: ControllerType.right, value: value);
+          break;
+      }
     }
   }
 

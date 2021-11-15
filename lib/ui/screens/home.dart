@@ -1,8 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_blue/flutter_blue.dart';
-import 'package:line_ctrl_app/controller/line_controller.dart';
 import 'package:line_ctrl_app/controller/bluetooth_controller.dart';
+import 'package:line_ctrl_app/controller/line_controller.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -13,50 +14,48 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late final LineController _lineController;
-  late final BluetoothController _bluetoothController;
+  bool _initialized = false;
 
   @override
   void initState() {
-    _bluetoothController = BluetoothController();
-    _lineController = LineController();
-    _lineController.init();
+    if (!_initialized) {
+      _lineController = LineController();
+      _lineController.init();
+      _initialized = true;
+    }
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    _lineController.dispose();
-    _bluetoothController.dispose;
-    super.dispose();
+    SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft]);
   }
 
   @override
   Widget build(BuildContext context) {
+    double width = MediaQuery.of(context).size.height / 2;
     return Scaffold(
       body: Center(
-        child: StreamBuilder<bool>(
-          stream: _bluetoothController.connected,
-          initialData: false,
-          builder: (c, snapshot) => snapshot.data!
-              ? Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    TextButton(
-                      child: const Text("push left"),
-                      onPressed: () async => _bluetoothController.write(
-                          type: ControllerType.left, value: 100),
-                    ),
-                    TextButton(
-                      child: const Text("push power"),
-                      onPressed: () async => _bluetoothController.write(
-                          type: ControllerType.power, value: 100),
-                    ),
-                    TextButton(
-                      child: const Text("push right"),
-                      onPressed: () async => _bluetoothController.write(
-                          type: ControllerType.right, value: 100),
-                    ),
-                  ],
+        child: StreamBuilder<List<BluetoothDevice>>(
+          stream: Stream.periodic(const Duration(seconds: 2))
+              .asyncMap((_) => FlutterBlue.instance.connectedDevices),
+          initialData: const [],
+          builder: (c, snapshot) => snapshot.data!.isNotEmpty
+              ? SafeArea(
+                  child: Column(
+                    children: [
+                      Align(
+                        alignment: Alignment.bottomLeft,
+                        child: ElevatedButton(
+                          onPressed: () =>
+                              _lineController.paused = !_lineController.paused,
+                          child: Icon(_lineController.paused
+                              ? Icons.play_arrow
+                              : Icons.pause),
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.bottomRight,
+                        child: _controlButtons(width: width),
+                      ),
+                    ],
+                  ),
                 )
               : const CircularProgressIndicator(),
         ),
@@ -80,5 +79,66 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       ),
     );
+  }
+
+  Widget _controlButtons({double width = 150}) {
+    return SizedBox(
+        width: width,
+        height: 300,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            ElevatedButton(
+                onPressed: _fullPower, child: const Icon(Icons.arrow_upward)),
+            Row(
+              children: [
+                ElevatedButton(
+                    onPressed: _fullBackward,
+                    child: const Icon(Icons.arrow_back)),
+                const Spacer(),
+                ElevatedButton(
+                    onPressed: _fullStop, child: const Icon(Icons.stop)),
+                const Spacer(),
+                ElevatedButton(
+                    onPressed: _fullForward,
+                    child: const Icon(Icons.arrow_forward)),
+              ],
+            ),
+            ElevatedButton(
+                onPressed: _fullBrake, child: const Icon(Icons.arrow_downward)),
+          ],
+        ));
+  }
+
+  void _fullPower() {
+    _lineController.paused = true;
+    _lineController.write(type: ControllerType.power, value: 255);
+  }
+
+  void _fullBrake() {
+    _lineController.paused = true;
+    _lineController.write(type: ControllerType.power, value: -255);
+  }
+
+  void _fullForward() {
+    _lineController.paused = true;
+    _lineController.write(type: ControllerType.right, value: 255);
+  }
+
+  void _fullBackward() {
+    _lineController.paused = true;
+    _lineController.write(type: ControllerType.right, value: -255);
+  }
+
+  void _fullStop() {
+    _lineController.paused = true;
+    _lineController.write(type: ControllerType.right, value: 0);
+  }
+
+  @override
+  void dispose() {
+    _lineController.dispose();
+    super.dispose();
   }
 }
