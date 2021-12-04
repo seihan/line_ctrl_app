@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
-import 'package:line_ctrl_app/ui/screens/bluetooth_off_screen.dart';
-import 'package:line_ctrl_app/ui/screens/home.dart';
+import 'package:line_ctrl_app/ui/bluetooth_off_screen.dart';
+import 'package:line_ctrl_app/ui/home.dart';
 
 void main() {
   runApp(const LineCtrlApp());

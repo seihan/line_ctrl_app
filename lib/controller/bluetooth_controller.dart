@@ -17,12 +17,10 @@ class BluetoothController {
   final Guid _rightCharGuid = Guid("74454618-2b9a-4c9a-bc20-b351dc7bd269");
   bool _connected = false;
 
-  final Stream _connectedDevices =
-      Stream.periodic(const Duration(seconds: 2))
-          .asyncMap((_) => FlutterBlue.instance.connectedDevices);
+  final Stream _connectedDevices = Stream.periodic(const Duration(seconds: 2))
+      .asyncMap((_) => FlutterBlue.instance.connectedDevices);
 
-  Stream<bool> get connected => _connectedDevices.transform(
-      StreamTransformer.fromHandlers(handleData: _handleConnectedDevices));
+  bool get connected => _connected;
 
   void startScan() {
     print("start scanning");
@@ -32,18 +30,22 @@ class BluetoothController {
   void init() {
     _streamSubscriptions
         .add(FlutterBlue.instance.scanResults.listen(_handleScanResult));
+    _streamSubscriptions.add(_connectedDevices.listen(_handleConnectedDevices));
   }
 
-  void write({int value = 0, required ControllerType type}) {
+  Future<void> write({int value = 0, required ControllerType type}) async {
     switch (type) {
       case ControllerType.left:
-        _leftChar.write(utf8.encode(value.toString()), withoutResponse: true);
+        await _leftChar.write(utf8.encode(value.toString()),
+            withoutResponse: true);
         break;
       case ControllerType.power:
-        _powerChar.write(utf8.encode(value.toString()), withoutResponse: true);
+        await _powerChar.write(utf8.encode(value.toString()),
+            withoutResponse: true);
         break;
       case ControllerType.right:
-        _rightChar.write(utf8.encode(value.toString()), withoutResponse: true);
+        await _rightChar.write(utf8.encode(value.toString()),
+            withoutResponse: true);
         break;
     }
   }
@@ -106,13 +108,12 @@ class BluetoothController {
     }
   }
 
-  void _handleConnectedDevices(devices, EventSink<bool> sink) {
+  void _handleConnectedDevices(devices) {
     if (devices.isNotEmpty) {
       _connected = true;
     } else {
       _connected = false;
     }
-    sink.add(_connected);
   }
 
   void dispose() {
