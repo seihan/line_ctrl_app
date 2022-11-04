@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
 enum ControllerType { right, left, power }
@@ -23,7 +24,7 @@ class BluetoothController {
   bool get connected => _connected;
 
   void startScan() {
-    print("start scanning");
+    debugPrint("start scanning");
     FlutterBlue.instance.startScan(timeout: const Duration(seconds: 5));
   }
 
@@ -55,36 +56,36 @@ class BluetoothController {
         deviceState != BluetoothDeviceState.connected ||
         deviceState == BluetoothDeviceState.disconnected) {
       try {
-        print("connecting");
+        debugPrint("connecting");
         await _device.connect();
       } catch (e) {
-        print(e);
+        debugPrint('error: $e');
       } finally {
         _handleServices(await _device.discoverServices());
       }
     } else {
-      print("disconnected");
+      debugPrint("disconnected");
     }
   }
 
   void _handleServices(List<BluetoothService> services) {
     if (services.isNotEmpty) {
-      print(services.first.uuid);
+      debugPrint('$services.first.uuid');
       for (var element in services) {
         if (element.uuid == _serviceGuid) {
-          print("found line ctrl service");
+          debugPrint("found line ctrl service");
           _lineService = element;
           for (var element in _lineService.characteristics) {
             if (element.uuid == _leftCharGuid) {
-              print("found left char");
+              debugPrint("found left char");
               _leftChar = element;
             }
             if (element.uuid == _powerCharGuid) {
-              print("found power char");
+              debugPrint("found power char");
               _powerChar = element;
             }
             if (element.uuid == _rightCharGuid) {
-              print("found right char");
+              debugPrint("found right char");
               _rightChar = element;
             }
           }
@@ -98,7 +99,7 @@ class BluetoothController {
       for (var element in results) {
         if (element.device.name == "LineCtrl") {
           FlutterBlue.instance.stopScan();
-          print("found " + element.device.name);
+          debugPrint("found " + element.device.name);
           _device = element.device;
           if (_streamSubscriptions.length < 4) {
             _streamSubscriptions.add(_device.state.listen(_handleDeviceState));

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:line_ctrl_app/controller/bluetooth_controller.dart';
 import 'package:line_ctrl_app/controller/sensor_controller.dart';
 import 'package:vector_math/vector_math.dart';
@@ -53,7 +54,7 @@ class LineController {
               type: ControllerType.right, value: _bothValue);
         }
       } catch (error) {
-        print(error.toString());
+        debugPrint(error.toString());
       }
     }
   }
