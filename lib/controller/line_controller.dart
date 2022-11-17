@@ -21,8 +21,8 @@ class LineController {
 
   void _initBluetoothController() {
     _bluetoothController = BluetoothController();
-    _bluetoothController.init();
     _bluetoothController.startScan();
+    _bluetoothController.listenScanResults();
   }
 
   void _initSensorController() {
