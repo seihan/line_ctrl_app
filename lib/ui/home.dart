@@ -31,97 +31,110 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.height / 2;
     return StreamBuilder<List<BluetoothDevice>>(
-        stream: Stream.periodic(const Duration(seconds: 2))
-            .asyncMap((_) => FlutterBlue.instance.connectedDevices),
-        initialData: const [],
-        builder: (c, snapshot) => snapshot.data!.isNotEmpty
-            ? Scaffold(
-                body: Center(
-                  child: SafeArea(
-                    child: Container(
-                      padding: const EdgeInsets.all(30),
-                      alignment: Alignment.bottomRight,
-                      child: _controlButtons(width: width),
-                    ),
+      stream: Stream.periodic(const Duration(seconds: 2))
+          .asyncMap((_) => FlutterBlue.instance.connectedDevices),
+      initialData: const [],
+      builder: (c, snapshot) => snapshot.data!.isNotEmpty
+          ? Scaffold(
+              body: Center(
+                child: SafeArea(
+                  child: Container(
+                    padding: const EdgeInsets.all(30),
+                    alignment: Alignment.bottomRight,
+                    child: _controlButtons(width: width),
                   ),
                 ),
-                floatingActionButton: FloatingActionButton(
-                  onPressed: () => _lineController.togglePause(),
-                  child: Icon(
-                      _lineController.paused ? Icons.play_arrow : Icons.pause),
+              ),
+              floatingActionButton: FloatingActionButton(
+                onPressed: () => _lineController.togglePause(),
+                child: Icon(
+                  _lineController.paused ? Icons.play_arrow : Icons.pause,
                 ),
-              )
-            : Scaffold(
-                body: const Center(child: CircularProgressIndicator()),
-                floatingActionButton: StreamBuilder<bool>(
-                  stream: FlutterBlue.instance.isScanning,
-                  initialData: false,
-                  builder: (c, snapshot) {
-                    if (snapshot.data!) {
-                      return FloatingActionButton(
-                        onPressed: () => FlutterBlue.instance.stopScan(),
-                        backgroundColor: Colors.red,
-                        child: const Icon(Icons.stop),
-                      );
-                    } else {
-                      return FloatingActionButton(
-                          child: const Icon(Icons.search),
-                          onPressed: () => FlutterBlue.instance
-                              .startScan(timeout: const Duration(seconds: 4)));
-                    }
-                  },
-                ),
-              ));
+              ),
+            )
+          : Scaffold(
+              body: const Center(child: CircularProgressIndicator()),
+              floatingActionButton: StreamBuilder<bool>(
+                stream: FlutterBlue.instance.isScanning,
+                initialData: false,
+                builder: (c, snapshot) {
+                  if (snapshot.data ?? false) {
+                    return FloatingActionButton(
+                      onPressed: () => FlutterBlue.instance.stopScan(),
+                      backgroundColor: Colors.red,
+                      child: const Icon(Icons.stop),
+                    );
+                  } else {
+                    return FloatingActionButton(
+                      child: const Icon(Icons.search),
+                      onPressed: () => FlutterBlue.instance
+                          .startScan(timeout: const Duration(seconds: 4)),
+                    );
+                  }
+                },
+              ),
+            ),
+    );
   }
 
   Widget _controlButtons({double width = 150}) {
     const double size = 69;
     return SizedBox(
-        height: 250,
-        width: 250,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SizedBox(
-                height: size,
-                width: size,
-                child: ElevatedButton(
-                    onPressed: _lineController.paused ? _fullPower : null,
-                    child: const Icon(Icons.arrow_upward))),
-            Row(
-              children: [
-                SizedBox(
-                    height: size,
-                    width: size,
-                    child: ElevatedButton(
-                        onPressed:
-                            _lineController.paused ? _fullBackward : null,
-                        child: const Icon(Icons.arrow_back))),
-                const Spacer(),
-                SizedBox(
-                    height: size,
-                    width: size,
-                    child: ElevatedButton(
-                        onPressed: _lineController.paused ? _fullStop : null,
-                        child: const Icon(Icons.stop))),
-                const Spacer(),
-                SizedBox(
-                    height: size,
-                    width: size,
-                    child: ElevatedButton(
-                        onPressed: _lineController.paused ? _fullForward : null,
-                        child: const Icon(Icons.arrow_forward))),
-              ],
+      height: 250,
+      width: 250,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            height: size,
+            width: size,
+            child: ElevatedButton(
+              onPressed: _lineController.paused ? _fullPower : null,
+              child: const Icon(Icons.arrow_upward),
             ),
-            SizedBox(
+          ),
+          Row(
+            children: [
+              SizedBox(
                 height: size,
                 width: size,
                 child: ElevatedButton(
-                    onPressed: _lineController.paused ? _fullBrake : null,
-                    child: const Icon(Icons.arrow_downward))),
-          ],
-        ));
+                  onPressed: _lineController.paused ? _fullBackward : null,
+                  child: const Icon(Icons.arrow_back),
+                ),
+              ),
+              const Spacer(),
+              SizedBox(
+                height: size,
+                width: size,
+                child: ElevatedButton(
+                  onPressed: _lineController.paused ? _fullStop : null,
+                  child: const Icon(Icons.stop),
+                ),
+              ),
+              const Spacer(),
+              SizedBox(
+                height: size,
+                width: size,
+                child: ElevatedButton(
+                  onPressed: _lineController.paused ? _fullForward : null,
+                  child: const Icon(Icons.arrow_forward),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(
+            height: size,
+            width: size,
+            child: ElevatedButton(
+              onPressed: _lineController.paused ? _fullBrake : null,
+              child: const Icon(Icons.arrow_downward),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _fullPower() {

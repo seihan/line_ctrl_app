@@ -15,15 +15,16 @@ class LineCtrlApp extends StatelessWidget {
     return MaterialApp(
       theme: ThemeData.dark(),
       home: StreamBuilder<BluetoothState>(
-          stream: FlutterBlue.instance.state,
-          initialData: BluetoothState.unknown,
-          builder: (c, snapshot) {
-            final state = snapshot.data;
-            if (state == BluetoothState.on) {
-              return const PermissionScreen();
-            }
-            return BluetoothOffScreen(state: state);
-          }),
+        stream: FlutterBlue.instance.state,
+        initialData: BluetoothState.unknown,
+        builder: (c, snapshot) {
+          final state = snapshot.data;
+          if (state == BluetoothState.on) {
+            return const PermissionScreen();
+          }
+          return BluetoothOffScreen(state: state);
+        },
+      ),
     );
   }
 }

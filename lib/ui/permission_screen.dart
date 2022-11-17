@@ -63,11 +63,15 @@ class _PermissionScreenState extends State<PermissionScreen>
           switch (model.permissionSection) {
             case PermissionSection.noLocationPermission:
               widget = LocationPermissions(
-                  isPermanent: false, onPressed: _checkPermissions);
+                isPermanent: false,
+                onPressed: _checkPermissions,
+              );
               break;
             case PermissionSection.noLocationPermissionPermanent:
               widget = LocationPermissions(
-                  isPermanent: true, onPressed: _checkPermissions);
+                isPermanent: true,
+                onPressed: _checkPermissions,
+              );
               break;
             case PermissionSection.permissionGranted:
               widget = StartButton(onPressed: _goToHomeScreen);
@@ -99,8 +103,9 @@ class _PermissionScreenState extends State<PermissionScreen>
   /// route will be removed
   void _goToHomeScreen() {
     Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-        (route) => false);
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+      (route) => false,
+    );
   }
 }
 
@@ -161,7 +166,11 @@ class LocationPermissions extends StatelessWidget {
             ),
           Container(
             padding: const EdgeInsets.only(
-                left: 16.0, top: 24.0, right: 16.0, bottom: 24.0),
+              left: 16.0,
+              top: 24.0,
+              right: 16.0,
+              bottom: 24.0,
+            ),
             child: ElevatedButton(
               child: Text(isPermanent ? 'Open settings' : 'Allow access'),
               onPressed: () => isPermanent ? openAppSettings() : onPressed(),
@@ -185,32 +194,36 @@ class StartButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Center(
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Container(
-          padding: const EdgeInsets.only(
-            left: 16.0,
-            top: 24.0,
-            right: 16.0,
-          ),
-          child: Text(
-            'Permissions are granted',
-            style: Theme.of(context).textTheme.headline6,
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.only(
+                left: 16.0,
+                top: 24.0,
+                right: 16.0,
+              ),
+              child: Text(
+                'Permissions are granted',
+                style: Theme.of(context).textTheme.headline6,
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.only(
+                left: 16.0,
+                top: 24.0,
+                right: 16.0,
+              ),
+              child: const Text(
+                'Prepare yourself and push the button!',
+                textAlign: TextAlign.center,
+              ),
+            ),
+            ElevatedButton(
+              onPressed: onPressed,
+              child: const Text('Let\'s start'),
+            ),
+          ],
         ),
-        Container(
-          padding: const EdgeInsets.only(
-            left: 16.0,
-            top: 24.0,
-            right: 16.0,
-          ),
-          child: const Text(
-            'Prepare yourself and push the button!',
-            textAlign: TextAlign.center,
-          ),
-        ),
-        ElevatedButton(
-          onPressed: onPressed,
-          child: const Text('Let\'s start'),
-        ),
-      ]));
+      );
 }

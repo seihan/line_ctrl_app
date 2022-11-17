@@ -37,21 +37,33 @@ class LineController {
         if (vector2.x < 2) {
           if (vector2.y < 0) {
             await _bluetoothController.write(
-                type: ControllerType.left, value: vector2.y.toInt() * -1);
+              type: ControllerType.left,
+              value: vector2.y.toInt() * -1,
+            );
             await _bluetoothController.write(
-                type: ControllerType.right, value: vector2.y.toInt());
+              type: ControllerType.right,
+              value: vector2.y.toInt(),
+            );
           } else {
             await _bluetoothController.write(
-                type: ControllerType.left, value: vector2.y.toInt() * -1);
+              type: ControllerType.left,
+              value: vector2.y.toInt() * -1,
+            );
             await _bluetoothController.write(
-                type: ControllerType.right, value: vector2.y.toInt());
+              type: ControllerType.right,
+              value: vector2.y.toInt(),
+            );
           }
         } else {
           _bothValue = vector2.x.toInt();
           await _bluetoothController.write(
-              type: ControllerType.left, value: _bothValue);
+            type: ControllerType.left,
+            value: _bothValue,
+          );
           await _bluetoothController.write(
-              type: ControllerType.right, value: _bothValue);
+            type: ControllerType.right,
+            value: _bothValue,
+          );
         }
       } catch (error) {
         debugPrint(error.toString());
@@ -64,21 +76,27 @@ class LineController {
       switch (type) {
         case ControllerType.left:
           await _bluetoothController.write(
-              type: ControllerType.left, value: value);
+            type: ControllerType.left,
+            value: value,
+          );
           break;
         case ControllerType.power:
           await _bluetoothController.write(
-              type: ControllerType.power, value: value);
+            type: ControllerType.power,
+            value: value,
+          );
           break;
         case ControllerType.right:
           await _bluetoothController.write(
-              type: ControllerType.right, value: value);
+            type: ControllerType.right,
+            value: value,
+          );
           break;
       }
     }
   }
 
-  void togglePause(){
+  void togglePause() {
     _paused = !_paused;
   }
 

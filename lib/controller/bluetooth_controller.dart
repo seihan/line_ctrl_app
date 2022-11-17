@@ -13,16 +13,16 @@ class BluetoothController {
   BluetoothCharacteristic? _leftChar;
   BluetoothCharacteristic? _powerChar;
   BluetoothCharacteristic? _rightChar;
-  final Guid _serviceGuid = Guid("3a39152a-6371-4730-8e24-31be298cf059");
-  final Guid _leftCharGuid = Guid("bf3e592d-063b-4b25-884e-5814640054e9");
-  final Guid _powerCharGuid = Guid("6cc05bc7-d9da-4b6e-9bfa-65e6c0b5b9d3");
-  final Guid _rightCharGuid = Guid("74454618-2b9a-4c9a-bc20-b351dc7bd269");
+  final Guid _serviceGuid = Guid('3a39152a-6371-4730-8e24-31be298cf059');
+  final Guid _leftCharGuid = Guid('bf3e592d-063b-4b25-884e-5814640054e9');
+  final Guid _powerCharGuid = Guid('6cc05bc7-d9da-4b6e-9bfa-65e6c0b5b9d3');
+  final Guid _rightCharGuid = Guid('74454618-2b9a-4c9a-bc20-b351dc7bd269');
   bool _connected = false;
 
   bool get connected => _connected;
 
   void startScan() {
-    debugPrint("start scanning");
+    debugPrint('start scanning');
     FlutterBlue.instance.startScan(timeout: const Duration(seconds: 5));
   }
 
@@ -34,16 +34,22 @@ class BluetoothController {
   Future<void> write({int value = 0, required ControllerType type}) async {
     switch (type) {
       case ControllerType.left:
-        await _leftChar?.write(utf8.encode(value.toString()),
-            withoutResponse: true);
+        await _leftChar?.write(
+          utf8.encode(value.toString()),
+          withoutResponse: true,
+        );
         break;
       case ControllerType.power:
-        await _powerChar?.write(utf8.encode(value.toString()),
-            withoutResponse: true);
+        await _powerChar?.write(
+          utf8.encode(value.toString()),
+          withoutResponse: true,
+        );
         break;
       case ControllerType.right:
-        await _rightChar?.write(utf8.encode(value.toString()),
-            withoutResponse: true);
+        await _rightChar?.write(
+          utf8.encode(value.toString()),
+          withoutResponse: true,
+        );
         break;
     }
   }
@@ -53,7 +59,7 @@ class BluetoothController {
         deviceState != BluetoothDeviceState.connected ||
         deviceState == BluetoothDeviceState.disconnected) {
       try {
-        debugPrint("connecting");
+        debugPrint('connecting');
         await _device?.connect();
       } catch (e) {
         debugPrint('error: $e');
@@ -63,16 +69,16 @@ class BluetoothController {
       }
     } else {
       _connected = false;
-      debugPrint("disconnected");
+      debugPrint('disconnected');
     }
   }
 
   void _findService(List<BluetoothService>? services) {
     if (services != null) {
-      debugPrint('$services.first.uuid');
       for (var element in services) {
+        debugPrint('${element.uuid}');
         if (element.uuid == _serviceGuid) {
-          debugPrint("found line ctrl service");
+          debugPrint('found line ctrl service');
           _lineService = element;
           _findCharacteristics(_lineService);
         }
@@ -84,15 +90,15 @@ class BluetoothController {
     if (service != null) {
       for (var element in service.characteristics) {
         if (element.uuid == _leftCharGuid) {
-          debugPrint("found left char");
+          debugPrint('found left char');
           _leftChar = element;
         }
         if (element.uuid == _powerCharGuid) {
-          debugPrint("found power char");
+          debugPrint('found power char');
           _powerChar = element;
         }
         if (element.uuid == _rightCharGuid) {
-          debugPrint("found right char");
+          debugPrint('found right char');
           _rightChar = element;
         }
       }
@@ -102,9 +108,9 @@ class BluetoothController {
   void _handleScanResult(List<ScanResult> results) {
     if (results.isNotEmpty) {
       for (var element in results) {
-        if (element.device.name == "LineCtrl") {
+        if (element.device.name == 'LineCtrl') {
           FlutterBlue.instance.stopScan();
-          debugPrint("found ${element.device.name}");
+          debugPrint('found ${element.device.name}');
           _device = element.device;
           _deviceStreamSubscription = _device?.state.listen(_handleDeviceState);
         }
