@@ -23,7 +23,9 @@ class _PermissionScreenState extends State<PermissionScreen>
 
     _permissionModel = PermissionModel();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      await _permissionModel.requestLocationPermission();
+      await _permissionModel
+          .requestLocationPermission()
+          .then((value) => value ? _goToHomeScreen() : null);
     });
   }
 
@@ -98,7 +100,7 @@ class _PermissionScreenState extends State<PermissionScreen>
     debugPrint('Location permission: $hasLocationPermissions');
   }
 
-  /// Leave permissions screen and go to home screen
+  /// Leave permission screen and go to home screen
   /// There is no need to came back, that's why the
   /// route will be removed
   void _goToHomeScreen() {
