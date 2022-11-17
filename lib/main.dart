@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:line_ctrl_app/ui/bluetooth_off_screen.dart';
-import 'package:line_ctrl_app/ui/home.dart';
+import 'package:line_ctrl_app/ui/permission_screen.dart';
 
 void main() {
   runApp(const LineCtrlApp());
@@ -20,7 +20,7 @@ class LineCtrlApp extends StatelessWidget {
           builder: (c, snapshot) {
             final state = snapshot.data;
             if (state == BluetoothState.on) {
-              return const HomeScreen();
+              return const PermissionScreen();
             }
             return BluetoothOffScreen(state: state);
           }),

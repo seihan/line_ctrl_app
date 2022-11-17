@@ -8,7 +8,7 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
@@ -17,12 +17,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
+    super.initState();
+
     if (!_initialized) {
       _lineController = LineController();
       _lineController.init();
       _initialized = true;
     }
-    super.initState();
     SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft]);
   }
 
@@ -58,9 +59,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   builder: (c, snapshot) {
                     if (snapshot.data!) {
                       return FloatingActionButton(
-                        child: const Icon(Icons.stop),
                         onPressed: () => FlutterBlue.instance.stopScan(),
                         backgroundColor: Colors.red,
+                        child: const Icon(Icons.stop),
                       );
                     } else {
                       return FloatingActionButton(
