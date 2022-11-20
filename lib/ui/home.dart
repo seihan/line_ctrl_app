@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:line_ctrl_app/controller/bluetooth_controller.dart';
 import 'package:line_ctrl_app/controller/line_controller.dart';
+import 'package:line_ctrl_app/ui/widgets/control_button.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -34,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
       stream: Stream.periodic(const Duration(seconds: 2))
           .asyncMap((_) => FlutterBlue.instance.connectedDevices),
       initialData: const [],
-      builder: (c, snapshot) => snapshot.data!.isNotEmpty
+      builder: (c, snapshot) => snapshot.hasData
           ? Scaffold(
               body: Center(
                 child: SafeArea(
@@ -58,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 stream: FlutterBlue.instance.isScanning,
                 initialData: false,
                 builder: (c, snapshot) {
-                  if (snapshot.data ?? false) {
+                  if (snapshot.hasData) {
                     return FloatingActionButton(
                       onPressed: () => FlutterBlue.instance.stopScan(),
                       backgroundColor: Colors.red,
@@ -86,51 +87,36 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SizedBox(
-            height: size,
-            width: size,
-            child: ElevatedButton(
-              onPressed: _lineController.paused ? _fullPower : null,
-              child: const Icon(Icons.arrow_upward),
-            ),
+          ControlButton(
+            icon: Icons.arrow_upward,
+            size: size,
+            onPressed: _lineController.paused ? _fullPower : null,
           ),
           Row(
             children: [
-              SizedBox(
-                height: size,
-                width: size,
-                child: ElevatedButton(
-                  onPressed: _lineController.paused ? _fullBackward : null,
-                  child: const Icon(Icons.arrow_back),
-                ),
+              ControlButton(
+                icon: Icons.arrow_back,
+                size: size,
+                onPressed: _lineController.paused ? _fullBackward : null,
               ),
               const Spacer(),
-              SizedBox(
-                height: size,
-                width: size,
-                child: ElevatedButton(
-                  onPressed: _lineController.paused ? _fullStop : null,
-                  child: const Icon(Icons.stop),
-                ),
+              ControlButton(
+                icon: Icons.stop,
+                size: size,
+                onPressed: _lineController.paused ? _fullStop : null,
               ),
               const Spacer(),
-              SizedBox(
-                height: size,
-                width: size,
-                child: ElevatedButton(
-                  onPressed: _lineController.paused ? _fullForward : null,
-                  child: const Icon(Icons.arrow_forward),
-                ),
-              ),
+              ControlButton(
+                icon: Icons.arrow_forward,
+                size: size,
+                onPressed: _lineController.paused ? _fullForward : null,
+              )
             ],
           ),
-          SizedBox(
-            height: size,
-            width: size,
-            child: ElevatedButton(
-              onPressed: _lineController.paused ? _fullBrake : null,
-              child: const Icon(Icons.arrow_downward),
-            ),
+          ControlButton(
+            icon: Icons.arrow_downward,
+            size: size,
+            onPressed: _lineController.paused ? _fullBrake : null,
           ),
         ],
       ),
