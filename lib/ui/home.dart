@@ -4,6 +4,9 @@ import 'package:flutter_blue/flutter_blue.dart';
 import 'package:line_ctrl_app/controller/bluetooth_controller.dart';
 import 'package:line_ctrl_app/controller/line_controller.dart';
 import 'package:line_ctrl_app/ui/widgets/control_button.dart';
+import 'package:line_ctrl_app/ui/widgets/data_view.dart';
+
+import '../controller/sensor_controller.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -13,7 +16,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late final LineController _lineController;
+  LineController? _lineController;
+  SensorController? _sensorController;
+
   bool _initialized = false;
 
   @override
@@ -22,7 +27,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (!_initialized) {
       _lineController = LineController();
-      _lineController.init();
+      _sensorController = SensorController();
+      _lineController?.init();
       _initialized = true;
     }
     SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft]);
@@ -35,46 +41,58 @@ class _HomeScreenState extends State<HomeScreen> {
       stream: Stream.periodic(const Duration(seconds: 2))
           .asyncMap((_) => FlutterBlue.instance.connectedDevices),
       initialData: const [],
-      builder: (c, snapshot) => snapshot.hasData
-          ? Scaffold(
-              body: Center(
-                child: SafeArea(
-                  child: Container(
-                    padding: const EdgeInsets.all(30),
-                    alignment: Alignment.bottomRight,
-                    child: _controlButtons(width: width),
+      builder: (c, snapshot) =>
+          (snapshot.hasData && (snapshot.data?.isNotEmpty ?? false))
+              ? Scaffold(
+                  body: Center(
+                    child: SafeArea(
+                      child: Container(
+                        padding: const EdgeInsets.all(30),
+                        alignment: Alignment.bottomRight,
+                        child: _controlButtons(width: width),
+                      ),
+                    ),
+                  ),
+                  floatingActionButton: FloatingActionButton(
+                    onPressed: () => _lineController?.togglePause(),
+                    child: Icon(
+                      (_lineController?.paused ?? false)
+                          ? Icons.play_arrow
+                          : Icons.pause,
+                    ),
+                  ),
+                )
+              : Scaffold(
+                  body: SafeArea(
+                    child: Column(
+                      children: <Widget>[
+                        DataView(
+                          stream: _sensorController?.vector2,
+                        ),
+                      ],
+                    ),
+                  ),
+                  //CircularProgressIndicator()),
+                  floatingActionButton: StreamBuilder<bool>(
+                    stream: FlutterBlue.instance.isScanning,
+                    initialData: false,
+                    builder: (c, snapshot) {
+                      if (snapshot.hasData) {
+                        return FloatingActionButton(
+                          onPressed: () => FlutterBlue.instance.stopScan(),
+                          backgroundColor: Colors.red,
+                          child: const Icon(Icons.stop),
+                        );
+                      } else {
+                        return FloatingActionButton(
+                          child: const Icon(Icons.search),
+                          onPressed: () => FlutterBlue.instance
+                              .startScan(timeout: const Duration(seconds: 4)),
+                        );
+                      }
+                    },
                   ),
                 ),
-              ),
-              floatingActionButton: FloatingActionButton(
-                onPressed: () => _lineController.togglePause(),
-                child: Icon(
-                  _lineController.paused ? Icons.play_arrow : Icons.pause,
-                ),
-              ),
-            )
-          : Scaffold(
-              body: const Center(child: CircularProgressIndicator()),
-              floatingActionButton: StreamBuilder<bool>(
-                stream: FlutterBlue.instance.isScanning,
-                initialData: false,
-                builder: (c, snapshot) {
-                  if (snapshot.hasData) {
-                    return FloatingActionButton(
-                      onPressed: () => FlutterBlue.instance.stopScan(),
-                      backgroundColor: Colors.red,
-                      child: const Icon(Icons.stop),
-                    );
-                  } else {
-                    return FloatingActionButton(
-                      child: const Icon(Icons.search),
-                      onPressed: () => FlutterBlue.instance
-                          .startScan(timeout: const Duration(seconds: 4)),
-                    );
-                  }
-                },
-              ),
-            ),
     );
   }
 
@@ -90,33 +108,36 @@ class _HomeScreenState extends State<HomeScreen> {
           ControlButton(
             icon: Icons.arrow_upward,
             size: size,
-            onPressed: _lineController.paused ? _fullPower : null,
+            onPressed: (_lineController?.paused ?? false) ? _fullPower : null,
           ),
           Row(
             children: [
               ControlButton(
                 icon: Icons.arrow_back,
                 size: size,
-                onPressed: _lineController.paused ? _fullBackward : null,
+                onPressed:
+                    (_lineController?.paused ?? false) ? _fullBackward : null,
               ),
               const Spacer(),
               ControlButton(
                 icon: Icons.stop,
                 size: size,
-                onPressed: _lineController.paused ? _fullStop : null,
+                onPressed:
+                    (_lineController?.paused ?? false) ? _fullStop : null,
               ),
               const Spacer(),
               ControlButton(
                 icon: Icons.arrow_forward,
                 size: size,
-                onPressed: _lineController.paused ? _fullForward : null,
+                onPressed:
+                    (_lineController?.paused ?? false) ? _fullForward : null,
               )
             ],
           ),
           ControlButton(
             icon: Icons.arrow_downward,
             size: size,
-            onPressed: _lineController.paused ? _fullBrake : null,
+            onPressed: (_lineController?.paused ?? false) ? _fullBrake : null,
           ),
         ],
       ),
@@ -124,28 +145,28 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _fullPower() {
-    _lineController.write(type: ControllerType.power, value: 255);
+    _lineController?.write(type: ControllerType.power, value: 255);
   }
 
   void _fullBrake() {
-    _lineController.write(type: ControllerType.power, value: -255);
+    _lineController?.write(type: ControllerType.power, value: -255);
   }
 
   void _fullForward() {
-    _lineController.write(type: ControllerType.right, value: 255);
+    _lineController?.write(type: ControllerType.right, value: 255);
   }
 
   void _fullBackward() {
-    _lineController.write(type: ControllerType.right, value: -255);
+    _lineController?.write(type: ControllerType.right, value: -255);
   }
 
   void _fullStop() {
-    _lineController.write(type: ControllerType.right, value: 0);
+    _lineController?.write(type: ControllerType.right, value: 0);
   }
 
   @override
   void dispose() {
-    _lineController.dispose();
+    _lineController?.dispose();
     super.dispose();
   }
 }
