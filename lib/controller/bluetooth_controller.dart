@@ -3,20 +3,23 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
-enum ControllerType { right, left, power }
+enum ControllerType { right, left, power, steering }
 
 class BluetoothController {
+  final Guid _serviceGuid = Guid('0058545f-5f5f-5f52-4148-435245574f50');
+  final Guid _rightCharGuid = Guid('0058545f-5f5f-5f52-4148-435245574f51');
+  final Guid _leftCharGuid = Guid('0058545f-5f5f-5f52-4148-435245574f52');
+  final Guid _steeringCharGuid = Guid('0058545f-5f5f-5f52-4148-435245574f53');
+  final Guid _powerCharGuid = Guid('0058545f-5f5f-5f52-4148-435245574f54');
+
   StreamSubscription<List<ScanResult>>? _scanStreamSubscription;
   StreamSubscription<BluetoothDeviceState>? _deviceStreamSubscription;
   BluetoothDevice? _device;
   BluetoothService? _lineService;
   BluetoothCharacteristic? _leftChar;
-  BluetoothCharacteristic? _powerChar;
   BluetoothCharacteristic? _rightChar;
-  final Guid _serviceGuid = Guid('3a39152a-6371-4730-8e24-31be298cf059');
-  final Guid _leftCharGuid = Guid('bf3e592d-063b-4b25-884e-5814640054e9');
-  final Guid _powerCharGuid = Guid('6cc05bc7-d9da-4b6e-9bfa-65e6c0b5b9d3');
-  final Guid _rightCharGuid = Guid('74454618-2b9a-4c9a-bc20-b351dc7bd269');
+  BluetoothCharacteristic? _powerChar;
+  BluetoothCharacteristic? _steeringChar;
   bool _connected = false;
 
   bool get connected => _connected;
@@ -39,14 +42,20 @@ class BluetoothController {
           withoutResponse: true,
         );
         break;
+      case ControllerType.right:
+        await _rightChar?.write(
+          utf8.encode(value.toString()),
+          withoutResponse: true,
+        );
+        break;
       case ControllerType.power:
         await _powerChar?.write(
           utf8.encode(value.toString()),
           withoutResponse: true,
         );
         break;
-      case ControllerType.right:
-        await _rightChar?.write(
+      case ControllerType.steering:
+        await _steeringChar?.write(
           utf8.encode(value.toString()),
           withoutResponse: true,
         );
@@ -93,13 +102,17 @@ class BluetoothController {
           debugPrint('found left char');
           _leftChar = element;
         }
+        if (element.uuid == _rightCharGuid) {
+          debugPrint('found right char');
+          _rightChar = element;
+        }
         if (element.uuid == _powerCharGuid) {
           debugPrint('found power char');
           _powerChar = element;
         }
-        if (element.uuid == _rightCharGuid) {
-          debugPrint('found right char');
-          _rightChar = element;
+        if (element.uuid == _steeringCharGuid) {
+          debugPrint('found steering char');
+          _steeringChar = element;
         }
       }
     }

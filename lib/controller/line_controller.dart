@@ -80,15 +80,21 @@ class LineController {
             value: value,
           );
           break;
+        case ControllerType.right:
+          await _bluetoothController.write(
+            type: ControllerType.right,
+            value: value,
+          );
+          break;
         case ControllerType.power:
           await _bluetoothController.write(
             type: ControllerType.power,
             value: value,
           );
           break;
-        case ControllerType.right:
+        case ControllerType.steering:
           await _bluetoothController.write(
-            type: ControllerType.right,
+            type: ControllerType.steering,
             value: value,
           );
           break;
