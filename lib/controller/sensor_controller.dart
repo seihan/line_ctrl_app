@@ -25,7 +25,7 @@ class SensorController {
     _vector2.x = reScale(
       value: _vector2.x,
       inMin: 0,
-      inMax: 7,
+      inMax: 10,
       outMin: 255,
       outMax: 0,
     );

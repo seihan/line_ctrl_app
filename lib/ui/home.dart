@@ -77,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     stream: FlutterBlue.instance.isScanning,
                     initialData: false,
                     builder: (c, snapshot) {
-                      if (snapshot.hasData) {
+                      if (snapshot.data ?? false) {
                         return FloatingActionButton(
                           onPressed: () => FlutterBlue.instance.stopScan(),
                           backgroundColor: Colors.red,
