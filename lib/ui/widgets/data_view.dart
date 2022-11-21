@@ -6,6 +6,8 @@ import 'package:vector_math/vector_math.dart' as vec;
 /// the output is a text widget with leading optional string list [names] or
 /// 'x: value ... y: value'
 /// only [x] and [y] values are printed
+/// two bars visualizes the vertical and horizontal axis by varying it's
+/// sizes corresponding to the values limited by the screen dimensions
 /// as long as no data is available a circular progress indicator is shown
 class DataView extends StatelessWidget {
   final Stream<vec.Vector2>? stream;
@@ -16,44 +18,65 @@ class DataView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Size screenSize = MediaQuery.of(context).size;
     return StreamBuilder<vec.Vector2>(
       stream: stream,
       initialData: vec.Vector2.zero(),
       builder: (c, snapshot) {
         if (snapshot.hasData) {
+          double x = snapshot.data?.x ?? 0;
+          double y = snapshot.data?.y ?? 0;
           return Column(
             children: <Widget>[
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   (names != null)
-                      ? Text('${names?.first}: ${snapshot.data?.x}')
-                      : Text('x: ${snapshot.data?.x}\t'),
+                      ? Text('${names?.first}: ${x.toStringAsFixed(2)}')
+                      : Text('x: ${x.toStringAsFixed(2)}\t'),
                   (names != null)
-                      ? Text('${names?.last}: ${snapshot.data?.y}')
-                      : Text('y: ${snapshot.data?.y}'),
+                      ? Text('${names?.last}: ${y.toStringAsFixed(2)}')
+                      : Text('y: ${y.toStringAsFixed(2)}'),
                 ],
               ),
-              Row(
-                children: <Widget>[
-                  if (snapshot.data!.y < 0)
-                    Container(
-                      color: Colors.red,
-                      height: 10,
-                      width: snapshot.data!.y * -1,
+              // horizontal bar
+              y < 0
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: <Widget>[
+                        Container(
+                          color: Colors.red,
+                          height: 10,
+                          width: y < (screenSize.width * 0.5)
+                              ? y * -1
+                              : (screenSize.width * 0.5),
+                        ),
+                        SizedBox(
+                          width: screenSize.width * 0.5,
+                        ),
+                      ],
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: <Widget>[
+                        SizedBox(
+                          width: screenSize.width * 0.5,
+                        ),
+                        Container(
+                          color: Colors.red,
+                          height: 10,
+                          width: y < (screenSize.width * 0.5)
+                              ? y
+                              : (screenSize.width * 0.5),
+                        ),
+                      ],
                     ),
-                  const Spacer(),
-                  if (snapshot.data!.y > 0)
-                    Container(
-                      color: Colors.red,
-                      height: 10,
-                      width: snapshot.data!.y,
-                    ),
-                ],
-              ),
+              // vertical bar
               Container(
                 color: Colors.blue,
-                height: snapshot.data!.x,
+                height: x < (screenSize.height * 0.9)
+                    ? x
+                    : (screenSize.height * 0.9),
                 width: 10,
               ),
             ],
