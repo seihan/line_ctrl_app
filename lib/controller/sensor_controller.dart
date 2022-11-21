@@ -1,13 +1,16 @@
 import 'dart:async';
 import 'package:sensors/sensors.dart';
 import 'package:vector_math/vector_math.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../utils.dart';
 
 class SensorController {
   Vector2 _vector2 = Vector2.zero();
 
-  Stream<Vector2> get vector2 => accelerometerEvents.transform(
+  Stream<Vector2> get vector2 => accelerometerEvents
+      .throttleTime(const Duration(milliseconds: 33), trailing: true)
+      .transform(
         StreamTransformer.fromHandlers(
           handleData: _transformAccelerometerEvent,
         ),
