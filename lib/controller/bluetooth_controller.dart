@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_blue/flutter_blue.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 enum ControllerType { right, left, power, steering }
 
@@ -26,12 +26,12 @@ class BluetoothController {
 
   void startScan() {
     debugPrint('start scanning');
-    FlutterBlue.instance.startScan(timeout: const Duration(seconds: 5));
+    FlutterBluePlus.instance.startScan(timeout: const Duration(seconds: 5));
   }
 
   void listenScanResults() {
     _scanStreamSubscription =
-        FlutterBlue.instance.scanResults.listen(_handleScanResult);
+        FlutterBluePlus.instance.scanResults.listen(_handleScanResult);
   }
 
   Future<void> write({int value = 0, required ControllerType type}) async {
@@ -122,7 +122,7 @@ class BluetoothController {
     if (results.isNotEmpty) {
       for (var element in results) {
         if (element.device.name == 'LineCtrl') {
-          FlutterBlue.instance.stopScan();
+          FlutterBluePlus.instance.stopScan();
           debugPrint('found ${element.device.name}');
           _device = element.device;
           _deviceStreamSubscription = _device?.state.listen(_handleDeviceState);

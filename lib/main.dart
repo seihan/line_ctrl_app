@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_blue/flutter_blue.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:line_ctrl_app/ui/bluetooth_off_screen.dart';
 import 'package:line_ctrl_app/ui/permission_screen.dart';
 
@@ -15,7 +15,7 @@ class LineCtrlApp extends StatelessWidget {
     return MaterialApp(
       theme: ThemeData.dark(),
       home: StreamBuilder<BluetoothState>(
-        stream: FlutterBlue.instance.state,
+        stream: FlutterBluePlus.instance.state,
         initialData: BluetoothState.unknown,
         builder: (c, snapshot) {
           final state = snapshot.data;

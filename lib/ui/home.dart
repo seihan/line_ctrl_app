@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_blue/flutter_blue.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:line_ctrl_app/controller/bluetooth_controller.dart';
 import 'package:line_ctrl_app/controller/line_controller.dart';
 import 'package:line_ctrl_app/ui/widgets/control_button.dart';
@@ -39,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
     double width = MediaQuery.of(context).size.height / 2;
     return StreamBuilder<List<BluetoothDevice>>(
       stream: Stream.periodic(const Duration(seconds: 2))
-          .asyncMap((_) => FlutterBlue.instance.connectedDevices),
+          .asyncMap((_) => FlutterBluePlus.instance.connectedDevices),
       initialData: const [],
       builder: (c, snapshot) =>
           (snapshot.hasData && (snapshot.data?.isNotEmpty ?? false))
@@ -74,19 +74,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   //CircularProgressIndicator()),
                   floatingActionButton: StreamBuilder<bool>(
-                    stream: FlutterBlue.instance.isScanning,
+                    stream: FlutterBluePlus.instance.isScanning,
                     initialData: false,
                     builder: (c, snapshot) {
                       if (snapshot.data ?? false) {
                         return FloatingActionButton(
-                          onPressed: () => FlutterBlue.instance.stopScan(),
+                          onPressed: () => FlutterBluePlus.instance.stopScan(),
                           backgroundColor: Colors.red,
                           child: const Icon(Icons.stop),
                         );
                       } else {
                         return FloatingActionButton(
                           child: const Icon(Icons.search),
-                          onPressed: () => FlutterBlue.instance
+                          onPressed: () => FlutterBluePlus.instance
                               .startScan(timeout: const Duration(seconds: 4)),
                         );
                       }
