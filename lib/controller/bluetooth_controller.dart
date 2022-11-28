@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
@@ -11,22 +12,33 @@ class BluetoothController {
   final Guid _leftCharGuid = Guid('0058545f-5f5f-5f52-4148-435245574f52');
   final Guid _steeringCharGuid = Guid('0058545f-5f5f-5f52-4148-435245574f53');
   final Guid _powerCharGuid = Guid('0058545f-5f5f-5f52-4148-435245574f54');
+  final Guid _powerRxCharUuid = Guid('0058545f-5f5f-5f52-4148-435245574f55');
 
   StreamSubscription<List<ScanResult>>? _scanStreamSubscription;
   StreamSubscription<BluetoothDeviceState>? _deviceStreamSubscription;
+  StreamSubscription? _notifyStreamSubscription;
   BluetoothDevice? _device;
   BluetoothService? _lineService;
   BluetoothCharacteristic? _leftChar;
   BluetoothCharacteristic? _rightChar;
   BluetoothCharacteristic? _powerChar;
+  BluetoothCharacteristic? _powerRxChar;
   BluetoothCharacteristic? _steeringChar;
   bool _connected = false;
+  bool _isNotifying = false;
 
   bool get connected => _connected;
+  bool get isNotifying => _isNotifying;
+
+  Stream<List<int>>? get notifyStream => _powerRxChar?.value;
 
   void startScan() {
     debugPrint('start scanning');
     FlutterBluePlus.instance.startScan(timeout: const Duration(seconds: 5));
+  }
+
+  void disconnect() {
+    _device?.disconnect();
   }
 
   void listenScanResults() {
@@ -60,6 +72,18 @@ class BluetoothController {
           withoutResponse: true,
         );
         break;
+    }
+  }
+
+  Future<void> toggleNotify() async {
+    _isNotifying = !_isNotifying;
+    debugPrint('is notifying; ${_powerRxChar?.isNotifying}');
+
+    await _powerRxChar?.setNotifyValue((_powerRxChar?.isNotifying ?? false));
+    if (_isNotifying) {
+      _notifyStreamSubscription =
+          _powerRxChar?.value.listen(_handleNotifyValues);
+      await _powerRxChar?.read();
     }
   }
 
@@ -110,6 +134,10 @@ class BluetoothController {
           debugPrint('found power char');
           _powerChar = element;
         }
+        if (element.uuid == _powerRxCharUuid) {
+          debugPrint('found power rx char');
+          _powerRxChar = element;
+        }
         if (element.uuid == _steeringCharGuid) {
           debugPrint('found steering char');
           _steeringChar = element;
@@ -131,9 +159,16 @@ class BluetoothController {
     }
   }
 
+  void _handleNotifyValues(List<int> values) {
+    if (values.isNotEmpty) {
+      debugPrint('notify values: $values');
+    }
+  }
+
   void dispose() {
     _scanStreamSubscription?.cancel();
     _deviceStreamSubscription?.cancel();
+    _notifyStreamSubscription?.cancel();
     _device?.disconnect();
   }
 }
