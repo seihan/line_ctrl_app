@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
@@ -25,6 +27,12 @@ class BluetoothOffScreen extends StatelessWidget {
                   .primaryTextTheme
                   .subtitle1
                   ?.copyWith(color: Colors.white),
+            ),
+            ElevatedButton(
+              onPressed: Platform.isAndroid
+                  ? () => FlutterBluePlus.instance.turnOn()
+                  : null,
+              child: const Text('TURN ON'),
             ),
           ],
         ),
