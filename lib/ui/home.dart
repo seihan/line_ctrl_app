@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:line_ctrl_app/controller/bluetooth_controller.dart';
 import 'package:line_ctrl_app/controller/line_controller.dart';
 import 'package:line_ctrl_app/ui/widgets/control_button.dart';
+import 'package:line_ctrl_app/ui/widgets/control_buttons.dart';
 import 'package:line_ctrl_app/ui/widgets/data_view.dart';
 
 import '../controller/sensor_controller.dart';
@@ -16,7 +16,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  LineController? _lineController;
+  late LineController _lineController;
   SensorController? _sensorController;
 
   bool _initialized = false;
@@ -28,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!_initialized) {
       _lineController = LineController();
       _sensorController = SensorController();
-      _lineController?.init();
+      _lineController.init();
       _initialized = true;
     }
     SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft]);
@@ -36,7 +36,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.height / 2;
     return StreamBuilder<List<BluetoothDevice>>(
       stream: Stream.periodic(const Duration(seconds: 2))
           .asyncMap((_) => FlutterBluePlus.instance.connectedDevices),
@@ -44,21 +43,66 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (c, snapshot) =>
           (snapshot.hasData && (snapshot.data?.isNotEmpty ?? false))
               ? Scaffold(
-                  body: Center(
-                    child: SafeArea(
-                      child: Container(
-                        padding: const EdgeInsets.all(30),
-                        alignment: Alignment.bottomRight,
-                        child: _controlButtons(width: width),
-                      ),
+                  body: SafeArea(
+                    child: Stack(
+                      children: <Widget>[
+                        Column(
+                          children: [
+                            Text('device name: ${snapshot.data?.first.name}'),
+                            Row(
+                              children: [
+                                ControlButton(
+                                  icon: Icons.close,
+                                  size: 50,
+                                  onPressed: () =>
+                                      snapshot.data?.first.disconnect(),
+                                ),
+                                ControlButton(
+                                  icon: Icons.bluetooth,
+                                  size: 50,
+                                  onPressed: _lineController.toggleNotify,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(30),
+                          alignment: Alignment.bottomLeft,
+                          child: ControlButtons(
+                            title: 'left motor',
+                            value: _lineController.leftValue,
+                            size: 69,
+                            active: _lineController.paused,
+                            up: _lineController.leftUp,
+                            down: _lineController.leftDown,
+                            left: _lineController.leftLeft,
+                            right: _lineController.leftRight,
+                            middle: _lineController.leftStop,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(30),
+                          alignment: Alignment.bottomRight,
+                          child: ControlButtons(
+                            title: 'right motor',
+                            value: _lineController.rightValue,
+                            size: 69,
+                            active: _lineController.paused,
+                            up: _lineController.rightUp,
+                            down: _lineController.rightDown,
+                            left: _lineController.rightLeft,
+                            right: _lineController.rightRight,
+                            middle: _lineController.rightStop,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   floatingActionButton: FloatingActionButton(
-                    onPressed: () => _lineController?.togglePause(),
+                    onPressed: _lineController.togglePause,
                     child: Icon(
-                      (_lineController?.paused ?? false)
-                          ? Icons.play_arrow
-                          : Icons.pause,
+                      _lineController.paused ? Icons.play_arrow : Icons.pause,
                     ),
                   ),
                 )
@@ -96,77 +140,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _controlButtons({double width = 150}) {
-    const double size = 69;
-    return SizedBox(
-      height: 250,
-      width: 250,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          ControlButton(
-            icon: Icons.arrow_upward,
-            size: size,
-            onPressed: (_lineController?.paused ?? false) ? _fullPower : null,
-          ),
-          Row(
-            children: [
-              ControlButton(
-                icon: Icons.arrow_back,
-                size: size,
-                onPressed:
-                    (_lineController?.paused ?? false) ? _fullBackward : null,
-              ),
-              const Spacer(),
-              ControlButton(
-                icon: Icons.stop,
-                size: size,
-                onPressed:
-                    (_lineController?.paused ?? false) ? _fullStop : null,
-              ),
-              const Spacer(),
-              ControlButton(
-                icon: Icons.arrow_forward,
-                size: size,
-                onPressed:
-                    (_lineController?.paused ?? false) ? _fullForward : null,
-              )
-            ],
-          ),
-          ControlButton(
-            icon: Icons.arrow_downward,
-            size: size,
-            onPressed: (_lineController?.paused ?? false) ? _fullBrake : null,
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _fullPower() {
-    _lineController?.write(type: ControllerType.power, value: 255);
-  }
-
-  void _fullBrake() {
-    _lineController?.write(type: ControllerType.power, value: -255);
-  }
-
-  void _fullForward() {
-    _lineController?.write(type: ControllerType.right, value: 255);
-  }
-
-  void _fullBackward() {
-    _lineController?.write(type: ControllerType.right, value: -255);
-  }
-
-  void _fullStop() {
-    _lineController?.write(type: ControllerType.right, value: 0);
-  }
-
   @override
   void dispose() {
-    _lineController?.dispose();
+    _lineController.dispose();
     super.dispose();
   }
 }

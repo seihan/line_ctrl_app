@@ -6,13 +6,17 @@ import 'package:line_ctrl_app/controller/sensor_controller.dart';
 import 'package:vector_math/vector_math.dart';
 
 class LineController {
-  late final StreamSubscription _sensorStreamSubscription;
+  StreamSubscription? _sensorStreamSubscription;
   late BluetoothController _bluetoothController;
-  late SensorController _sensorController;
+  late SensorController? _sensorController;
   int _bothValue = 0;
-  bool _paused = false;
+  bool _paused = true;
+  int _leftValue = 0;
+  int _rightValue = 0;
 
   bool get paused => _paused;
+  int get leftValue => _leftValue;
+  int get rightValue => _rightValue;
 
   void init() {
     _initBluetoothController();
@@ -28,7 +32,7 @@ class LineController {
   void _initSensorController() {
     _sensorController = SensorController();
     _sensorStreamSubscription =
-        _sensorController.vector2.listen(_handleSensorData);
+        _sensorController?.vector2.listen(_handleSensorData);
   }
 
   void _handleSensorData(Vector2 vector2) async {
@@ -104,9 +108,73 @@ class LineController {
 
   void togglePause() {
     _paused = !_paused;
+    if (_paused) {
+      _sensorStreamSubscription?.cancel();
+    } else {
+      _initSensorController();
+    }
+  }
+
+  void leftUp() {
+    if (_leftValue < 255) {
+      _leftValue = _leftValue + 5;
+    }
+  }
+
+  void leftDown() {
+    if (_leftValue > -255) {
+      _leftValue = leftValue - 5;
+    }
+  }
+
+  void leftLeft() {
+    _leftValue = -(_leftValue.abs());
+    _bluetoothController.write(type: ControllerType.left, value: _leftValue);
+  }
+
+  void leftRight() {
+    _leftValue = _leftValue.abs();
+    _bluetoothController.write(type: ControllerType.left, value: _leftValue);
+  }
+
+  void leftStop() {
+    _leftValue = 0;
+    _bluetoothController.write(type: ControllerType.left, value: _leftValue);
+  }
+
+  void rightUp() {
+    if (_rightValue < 255) {
+      _rightValue = rightValue + 5;
+    }
+  }
+
+  void rightDown() {
+    if (_rightValue > -255) {
+      _rightValue = rightValue - 5;
+    }
+  }
+
+  void rightLeft() {
+    _rightValue = -(_rightValue.abs());
+    _bluetoothController.write(type: ControllerType.right, value: _rightValue);
+  }
+
+  void rightRight() {
+    _rightValue = _rightValue.abs();
+    _bluetoothController.write(type: ControllerType.right, value: _rightValue);
+  }
+
+  void rightStop() {
+    _rightValue = 0;
+    _bluetoothController.write(type: ControllerType.right, value: _rightValue);
+  }
+
+  void toggleNotify() {
+    _bluetoothController.toggleNotify();
   }
 
   void dispose() {
-    _sensorStreamSubscription.cancel();
+    _sensorStreamSubscription?.cancel();
+    _bluetoothController.dispose();
   }
 }
