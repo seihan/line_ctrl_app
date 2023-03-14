@@ -1,21 +1,23 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 enum ControllerType { right, left, power, steering }
 
-class BluetoothController {
+class BluetoothConnectionModel {
   final Guid _serviceGuid = Guid('0058545f-5f5f-5f52-4148-435245574f50');
   final Guid _rightCharGuid = Guid('0058545f-5f5f-5f52-4148-435245574f51');
   final Guid _leftCharGuid = Guid('0058545f-5f5f-5f52-4148-435245574f52');
   final Guid _steeringCharGuid = Guid('0058545f-5f5f-5f52-4148-435245574f53');
   final Guid _powerCharGuid = Guid('0058545f-5f5f-5f52-4148-435245574f54');
   final Guid _powerRxCharUuid = Guid('0058545f-5f5f-5f52-4148-435245574f55');
+  final FlutterBluePlus _instance = FlutterBluePlus.instance;
 
   StreamSubscription<List<ScanResult>>? _scanStreamSubscription;
   StreamSubscription<BluetoothDeviceState>? _deviceStreamSubscription;
+  StreamSubscription? _connectionSubscription;
   StreamSubscription? _notifyStreamSubscription;
   BluetoothDevice? _device;
   BluetoothService? _lineService;
@@ -26,24 +28,46 @@ class BluetoothController {
   BluetoothCharacteristic? _steeringChar;
   bool _connected = false;
   bool _isNotifying = false;
+  int _leftValue = 0;
+  int _rightValue = 0;
 
+  int get leftValue => _leftValue;
+  int get rightValue => _rightValue;
   bool get connected => _connected;
   bool get isNotifying => _isNotifying;
 
   Stream<List<int>>? get notifyStream => _powerRxChar?.value;
 
+  set leftValue(int value) {
+    if (value == _leftValue) {
+      return;
+    }
+    _leftValue = value;
+  }
+
+  BluetoothConnectionModel() {
+    _initialize();
+  }
+
+  void _initialize() {
+    startScan();
+    _listenScanResults();
+    _connectionSubscription = Stream.periodic(const Duration(seconds: 5))
+        .asyncMap((_) => _instance.connectedDevices)
+        .listen(_listenConnections);
+  }
+
   void startScan() {
     debugPrint('start scanning');
-    FlutterBluePlus.instance.startScan(timeout: const Duration(seconds: 5));
+    _instance.startScan(timeout: const Duration(seconds: 5));
   }
 
   void disconnect() {
     _device?.disconnect();
   }
 
-  void listenScanResults() {
-    _scanStreamSubscription =
-        FlutterBluePlus.instance.scanResults.listen(_handleScanResult);
+  void _listenScanResults() {
+    _scanStreamSubscription = _instance.scanResults.listen(_handleScanResult);
   }
 
   Future<void> write({int value = 0, required ControllerType type}) async {
@@ -84,6 +108,13 @@ class BluetoothController {
       _notifyStreamSubscription =
           _powerRxChar?.value.listen(_handleNotifyValues);
       await _powerRxChar?.read();
+    }
+  }
+
+  void _listenConnections(List<BluetoothDevice> event) {
+    bool hasConnections = event.isNotEmpty;
+    if (_connected != hasConnections) {
+      _connected = hasConnections;
     }
   }
 
@@ -150,7 +181,7 @@ class BluetoothController {
     if (results.isNotEmpty) {
       for (var element in results) {
         if (element.device.name == 'LineCtrl') {
-          FlutterBluePlus.instance.stopScan();
+          _instance.stopScan();
           debugPrint('found ${element.device.name}');
           _device = element.device;
           _deviceStreamSubscription = _device?.state.listen(_handleDeviceState);
@@ -169,6 +200,7 @@ class BluetoothController {
     _scanStreamSubscription?.cancel();
     _deviceStreamSubscription?.cancel();
     _notifyStreamSubscription?.cancel();
+    _connectionSubscription?.cancel();
     _device?.disconnect();
   }
 }

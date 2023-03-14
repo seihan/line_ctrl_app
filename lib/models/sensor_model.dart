@@ -1,11 +1,13 @@
 import 'dart:async';
+
+import 'package:flutter/cupertino.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:sensors/sensors.dart';
 import 'package:vector_math/vector_math.dart';
-import 'package:rxdart/rxdart.dart';
 
 import '../utils.dart';
 
-class SensorController {
+class SensorController extends ChangeNotifier {
   Vector2 _vector2 = Vector2.zero();
 
   Stream<Vector2> get vector2 => accelerometerEvents

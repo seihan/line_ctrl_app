@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:line_ctrl_app/models/sensor_model.dart';
 import 'package:line_ctrl_app/ui/bluetooth_off_screen.dart';
 import 'package:line_ctrl_app/ui/permission_screen.dart';
+import 'package:provider/provider.dart';
+
+import 'models/bluetooth_state_model.dart';
 
 void main() {
   runApp(const LineCtrlApp());
@@ -12,18 +15,24 @@ class LineCtrlApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData.dark(),
-      home: StreamBuilder<BluetoothState>(
-        stream: FlutterBluePlus.instance.state,
-        initialData: BluetoothState.unknown,
-        builder: (c, snapshot) {
-          final state = snapshot.data;
-          if (state == BluetoothState.on) {
-            return const PermissionScreen();
-          }
-          return BluetoothOffScreen(state: state);
-        },
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<BluetoothStateModel>(
+          create: (_) => BluetoothStateModel(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => SensorController(),
+        ),
+      ],
+      child: MaterialApp(
+        theme: ThemeData.dark(),
+        home: Consumer<BluetoothStateModel>(
+          builder: (context, model, child) {
+            return model.on
+                ? const PermissionScreen()
+                : const BluetoothOffScreen();
+          },
+        ),
       ),
     );
   }
