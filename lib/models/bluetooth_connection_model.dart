@@ -4,9 +4,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
+import '../error_handling/custom_error_handler.dart';
+
 enum ControllerType { right, left, power, steering }
 
-class BluetoothConnectionModel {
+class BluetoothConnectionModel extends ChangeNotifier {
   final Guid _serviceGuid = Guid('0058545f-5f5f-5f52-4148-435245574f50');
   final Guid _rightCharGuid = Guid('0058545f-5f5f-5f52-4148-435245574f51');
   final Guid _leftCharGuid = Guid('0058545f-5f5f-5f52-4148-435245574f52');
@@ -15,9 +17,10 @@ class BluetoothConnectionModel {
   final Guid _powerRxCharUuid = Guid('0058545f-5f5f-5f52-4148-435245574f55');
   final FlutterBluePlus _instance = FlutterBluePlus.instance;
 
-  StreamSubscription<List<ScanResult>>? _scanStreamSubscription;
-  StreamSubscription<BluetoothDeviceState>? _deviceStreamSubscription;
-  StreamSubscription? _connectionSubscription;
+  StreamSubscription<List<ScanResult>>? _scanResultSubscription;
+  StreamSubscription<BluetoothDeviceState>? _deviceSubscription;
+  StreamSubscription<bool>? _scanSubscription;
+  StreamSubscription<List<BluetoothDevice>>? _connectionSubscription;
   StreamSubscription? _notifyStreamSubscription;
   BluetoothDevice? _device;
   BluetoothService? _lineService;
@@ -26,30 +29,18 @@ class BluetoothConnectionModel {
   BluetoothCharacteristic? _powerChar;
   BluetoothCharacteristic? _powerRxChar;
   BluetoothCharacteristic? _steeringChar;
+  Timer? _timer;
+
   bool _connected = false;
   bool _isNotifying = false;
-  int _leftValue = 0;
-  int _rightValue = 0;
-
-  int get leftValue => _leftValue;
-  int get rightValue => _rightValue;
+  bool _isScanning = false;
   bool get connected => _connected;
   bool get isNotifying => _isNotifying;
+  bool get isScanning => _isScanning;
 
   Stream<List<int>>? get notifyStream => _powerRxChar?.value;
 
-  set leftValue(int value) {
-    if (value == _leftValue) {
-      return;
-    }
-    _leftValue = value;
-  }
-
-  BluetoothConnectionModel() {
-    _initialize();
-  }
-
-  void _initialize() {
+  void initialize() {
     startScan();
     _listenScanResults();
     _connectionSubscription = Stream.periodic(const Duration(seconds: 5))
@@ -58,16 +49,24 @@ class BluetoothConnectionModel {
   }
 
   void startScan() {
+    if (_isScanning) {
+      return;
+    }
+    _scanSubscription?.cancel();
+    _scanResultSubscription?.cancel();
+    _scanResultSubscription = _instance.scanResults.listen(_handleScanResult);
+    _scanSubscription = _instance.isScanning.listen(_handleScanState);
     debugPrint('start scanning');
     _instance.startScan(timeout: const Duration(seconds: 5));
   }
 
-  void disconnect() {
-    _device?.disconnect();
+  void _handleScanState(bool event) {
+    _isScanning = event;
+    notifyListeners();
   }
 
   void _listenScanResults() {
-    _scanStreamSubscription = _instance.scanResults.listen(_handleScanResult);
+    _scanResultSubscription = _instance.scanResults.listen(_handleScanResult);
   }
 
   Future<void> write({int value = 0, required ControllerType type}) async {
@@ -119,25 +118,30 @@ class BluetoothConnectionModel {
   }
 
   void _handleDeviceState(BluetoothDeviceState? deviceState) async {
-    if (deviceState != BluetoothDeviceState.connecting ||
-        deviceState != BluetoothDeviceState.connected ||
-        deviceState == BluetoothDeviceState.disconnected) {
+    debugPrint('device state = ${deviceState.toString()}');
+    if (deviceState != BluetoothDeviceState.connected &&
+        deviceState != BluetoothDeviceState.connecting) {
+      debugPrint('disconnected');
+      _connected = false;
+      notifyListeners();
       try {
         debugPrint('connecting');
         await _device?.connect();
-      } catch (e) {
-        debugPrint('error: $e');
-      } finally {
-        _findService(await _device?.discoverServices());
-        _connected = true;
+        _handleServices(await _device?.discoverServices());
+      } on Exception catch (error, stacktrace) {
+        CustomErrorHandler.handleFlutterError(error, stacktrace);
+        debugPrint('Error: $error');
       }
-    } else {
-      _connected = false;
-      debugPrint('disconnected');
+    } else if (deviceState == BluetoothDeviceState.connecting) {
+      debugPrint('connecting');
+    } else if (deviceState == BluetoothDeviceState.connected) {
+      _connected = true;
+      debugPrint('connected');
     }
+    notifyListeners();
   }
 
-  void _findService(List<BluetoothService>? services) {
+  void _handleServices(List<BluetoothService>? services) {
     if (services != null) {
       for (var element in services) {
         debugPrint('${element.uuid}');
@@ -184,7 +188,7 @@ class BluetoothConnectionModel {
           _instance.stopScan();
           debugPrint('found ${element.device.name}');
           _device = element.device;
-          _deviceStreamSubscription = _device?.state.listen(_handleDeviceState);
+          _deviceSubscription = _device?.state.listen(_handleDeviceState);
         }
       }
     }
@@ -196,11 +200,15 @@ class BluetoothConnectionModel {
     }
   }
 
+  @override
   void dispose() {
-    _scanStreamSubscription?.cancel();
-    _deviceStreamSubscription?.cancel();
+    _scanSubscription?.cancel();
+    _scanResultSubscription?.cancel();
+    _deviceSubscription?.cancel();
     _notifyStreamSubscription?.cancel();
     _connectionSubscription?.cancel();
     _device?.disconnect();
+    _timer?.cancel();
+    super.dispose();
   }
 }

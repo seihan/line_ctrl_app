@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:line_ctrl_app/models/permission_model.dart';
-import 'package:line_ctrl_app/ui/home.dart';
+import 'package:line_ctrl_app/ui/screens/home.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
@@ -20,13 +20,7 @@ class _PermissionScreenState extends State<PermissionScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-
     _permissionModel = PermissionModel();
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      await _permissionModel
-          .requestLocationPermission()
-          .then((value) => value ? _goToHomeScreen() : null);
-    });
   }
 
   @override
@@ -77,6 +71,12 @@ class _PermissionScreenState extends State<PermissionScreen>
               break;
             case PermissionSection.permissionGranted:
               widget = StartButton(onPressed: _goToHomeScreen);
+              break;
+            case PermissionSection.unknown:
+              widget = LocationPermissions(
+                isPermanent: false,
+                onPressed: _checkPermissions,
+              );
               break;
           }
 
@@ -139,7 +139,7 @@ class LocationPermissions extends StatelessWidget {
             ),
             child: Text(
               'Location service permission',
-              style: Theme.of(context).textTheme.headline6,
+              style: Theme.of(context).textTheme.titleLarge,
             ),
           ),
           Container(
@@ -207,7 +207,7 @@ class StartButton extends StatelessWidget {
               ),
               child: Text(
                 'Permissions are granted',
-                style: Theme.of(context).textTheme.headline6,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
             Container(

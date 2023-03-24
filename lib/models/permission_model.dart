@@ -6,10 +6,11 @@ enum PermissionSection {
   noLocationPermission, // Permission denied, but not forever
   noLocationPermissionPermanent, // Permission denied forever
   permissionGranted, // Permission granted
+  unknown, // Permission unknown
 }
 
 class PermissionModel extends ChangeNotifier {
-  PermissionSection _permissionSection = PermissionSection.permissionGranted;
+  PermissionSection _permissionSection = PermissionSection.unknown;
 
   PermissionSection get permissionSection => _permissionSection;
 

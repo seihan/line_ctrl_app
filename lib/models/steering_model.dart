@@ -6,7 +6,7 @@ import 'package:line_ctrl_app/models/sensor_model.dart';
 import 'package:vector_math/vector_math.dart';
 
 class SteeringModel extends ChangeNotifier {
-  late BluetoothConnectionModel _connectionModel;
+  final BluetoothConnectionModel connectionModel;
   StreamSubscription? _sensorStreamSubscription;
   late SensorController? _sensorController;
   int _bothValue = 0;
@@ -17,14 +17,12 @@ class SteeringModel extends ChangeNotifier {
   bool get paused => _paused;
   int get leftValue => _leftValue;
   int get rightValue => _rightValue;
-  bool get connected => _connectionModel.connected;
 
-  SteeringModel() {
+  SteeringModel({required this.connectionModel}) {
     init();
   }
 
   void init() {
-    _connectionModel = BluetoothConnectionModel();
     _initSensorController();
   }
 
@@ -35,35 +33,35 @@ class SteeringModel extends ChangeNotifier {
   }
 
   void _handleSensorData(Vector2 vector2) async {
-    if (_connectionModel.connected && !_paused) {
+    if (connectionModel.connected && !_paused) {
       try {
         if (vector2.x < 2) {
           if (vector2.y < 0) {
-            await _connectionModel.write(
+            await connectionModel.write(
               type: ControllerType.left,
               value: vector2.y.toInt() * -1,
             );
-            await _connectionModel.write(
+            await connectionModel.write(
               type: ControllerType.right,
               value: vector2.y.toInt(),
             );
           } else {
-            await _connectionModel.write(
+            await connectionModel.write(
               type: ControllerType.left,
               value: vector2.y.toInt() * -1,
             );
-            await _connectionModel.write(
+            await connectionModel.write(
               type: ControllerType.right,
               value: vector2.y.toInt(),
             );
           }
         } else {
           _bothValue = vector2.x.toInt();
-          await _connectionModel.write(
+          await connectionModel.write(
             type: ControllerType.left,
             value: _bothValue,
           );
-          await _connectionModel.write(
+          await connectionModel.write(
             type: ControllerType.right,
             value: _bothValue,
           );
@@ -78,25 +76,25 @@ class SteeringModel extends ChangeNotifier {
     if (_paused) {
       switch (type) {
         case ControllerType.left:
-          await _connectionModel.write(
+          await connectionModel.write(
             type: ControllerType.left,
             value: value,
           );
           break;
         case ControllerType.right:
-          await _connectionModel.write(
+          await connectionModel.write(
             type: ControllerType.right,
             value: value,
           );
           break;
         case ControllerType.power:
-          await _connectionModel.write(
+          await connectionModel.write(
             type: ControllerType.power,
             value: value,
           );
           break;
         case ControllerType.steering:
-          await _connectionModel.write(
+          await connectionModel.write(
             type: ControllerType.steering,
             value: value,
           );
@@ -131,19 +129,19 @@ class SteeringModel extends ChangeNotifier {
 
   void leftLeft() {
     _leftValue = -(_leftValue.abs());
-    _connectionModel.write(type: ControllerType.left, value: _leftValue);
+    connectionModel.write(type: ControllerType.left, value: _leftValue);
     notifyListeners();
   }
 
   void leftRight() {
     _leftValue = _leftValue.abs();
-    _connectionModel.write(type: ControllerType.left, value: _leftValue);
+    connectionModel.write(type: ControllerType.left, value: _leftValue);
     notifyListeners();
   }
 
   void leftStop() {
     _leftValue = 0;
-    _connectionModel.write(type: ControllerType.left, value: _leftValue);
+    connectionModel.write(type: ControllerType.left, value: _leftValue);
     notifyListeners();
   }
 
@@ -163,30 +161,29 @@ class SteeringModel extends ChangeNotifier {
 
   void rightLeft() {
     _rightValue = -(_rightValue.abs());
-    _connectionModel.write(type: ControllerType.right, value: _rightValue);
+    connectionModel.write(type: ControllerType.right, value: _rightValue);
     notifyListeners();
   }
 
   void rightRight() {
     _rightValue = _rightValue.abs();
-    _connectionModel.write(type: ControllerType.right, value: _rightValue);
+    connectionModel.write(type: ControllerType.right, value: _rightValue);
     notifyListeners();
   }
 
   void rightStop() {
     _rightValue = 0;
-    _connectionModel.write(type: ControllerType.right, value: _rightValue);
+    connectionModel.write(type: ControllerType.right, value: _rightValue);
     notifyListeners();
   }
 
   void toggleNotify() {
-    _connectionModel.toggleNotify();
+    connectionModel.toggleNotify();
   }
 
   @override
   void dispose() {
     _sensorStreamSubscription?.cancel();
-    _connectionModel.dispose();
     super.dispose();
   }
 }
