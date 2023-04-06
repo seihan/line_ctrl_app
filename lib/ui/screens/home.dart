@@ -4,6 +4,9 @@ import 'package:line_ctrl_app/models/bluetooth_connection_model.dart';
 import 'package:line_ctrl_app/ui/screens/steering_screen.dart';
 import 'package:provider/provider.dart';
 
+import '../widgets/connection_log_viewer.dart';
+import 'steering_demo.dart';
+
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
@@ -14,11 +17,20 @@ class HomeScreen extends StatelessWidget {
       create: (_) => BluetoothConnectionModel()..initialize(),
       child: Consumer<BluetoothConnectionModel>(
         builder: (context, model, child) {
-          return model.connected
-              ? SteeringScreen(
-                  model: model,
-                )
-              : SteeringDemo(model: model);
+          return Stack(
+            children: [
+              ConnectionLogViewer(
+                model: model,
+              ),
+              model.connected
+                  ? SteeringScreen(
+                      model: model,
+                    )
+                  : SteeringDemo(
+                      model: model,
+                    ),
+            ],
+          );
         },
       ),
     );

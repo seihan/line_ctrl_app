@@ -9,7 +9,6 @@ class SteeringModel extends ChangeNotifier {
   final BluetoothConnectionModel connectionModel;
   StreamSubscription? _sensorStreamSubscription;
   late SensorController? _sensorController;
-  int _bothValue = 0;
   bool _paused = true;
   int _leftValue = 0;
   int _rightValue = 0;
@@ -35,70 +34,12 @@ class SteeringModel extends ChangeNotifier {
   void _handleSensorData(Vector2 vector2) async {
     if (connectionModel.connected && !_paused) {
       try {
-        if (vector2.x < 2) {
-          if (vector2.y < 0) {
-            await connectionModel.write(
-              type: ControllerType.left,
-              value: vector2.y.toInt() * -1,
-            );
-            await connectionModel.write(
-              type: ControllerType.right,
-              value: vector2.y.toInt(),
-            );
-          } else {
-            await connectionModel.write(
-              type: ControllerType.left,
-              value: vector2.y.toInt() * -1,
-            );
-            await connectionModel.write(
-              type: ControllerType.right,
-              value: vector2.y.toInt(),
-            );
-          }
-        } else {
-          _bothValue = vector2.x.toInt();
-          await connectionModel.write(
-            type: ControllerType.left,
-            value: _bothValue,
-          );
-          await connectionModel.write(
-            type: ControllerType.right,
-            value: _bothValue,
-          );
-        }
+        await connectionModel.write(
+          type: ControllerType.steering,
+          value: vector2.y.toInt(),
+        );
       } catch (error) {
         debugPrint(error.toString());
-      }
-    }
-  }
-
-  void write({required ControllerType type, int value = 0}) async {
-    if (_paused) {
-      switch (type) {
-        case ControllerType.left:
-          await connectionModel.write(
-            type: ControllerType.left,
-            value: value,
-          );
-          break;
-        case ControllerType.right:
-          await connectionModel.write(
-            type: ControllerType.right,
-            value: value,
-          );
-          break;
-        case ControllerType.power:
-          await connectionModel.write(
-            type: ControllerType.power,
-            value: value,
-          );
-          break;
-        case ControllerType.steering:
-          await connectionModel.write(
-            type: ControllerType.steering,
-            value: value,
-          );
-          break;
       }
     }
   }
@@ -106,11 +47,23 @@ class SteeringModel extends ChangeNotifier {
   void togglePause() {
     _paused = !_paused;
     if (_paused) {
+      _stop();
       _sensorStreamSubscription?.cancel();
     } else {
       _initSensorController();
     }
     notifyListeners();
+  }
+
+  void _stop() async {
+    await connectionModel.write(
+      type: ControllerType.right,
+      value: 0,
+    );
+    await connectionModel.write(
+      type: ControllerType.left,
+      value: 0,
+    );
   }
 
   void leftUp() {
@@ -175,10 +128,6 @@ class SteeringModel extends ChangeNotifier {
     _rightValue = 0;
     connectionModel.write(type: ControllerType.right, value: _rightValue);
     notifyListeners();
-  }
-
-  void toggleNotify() {
-    connectionModel.toggleNotify();
   }
 
   @override

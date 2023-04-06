@@ -27,7 +27,7 @@ class SensorController extends ChangeNotifier {
     EventSink<Vector2> sink,
   ) {
     _vector2 = _vecOf(event);
-    _vector2.x = reScale(
+    _vector2.x = Utils.reScale(
       value: _vector2.x,
       inMin: 0,
       inMax: 10,
@@ -35,14 +35,14 @@ class SensorController extends ChangeNotifier {
       outMax: 0,
     );
     _vector2.y = _vector2.y < 0
-        ? reScale(
+        ? Utils.reScale(
             value: _vector2.y,
             inMin: -10,
             inMax: 0,
             outMin: -255,
             outMax: 0,
           )
-        : reScale(
+        : Utils.reScale(
             value: _vector2.y,
             inMin: 0,
             inMax: 10,

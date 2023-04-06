@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:line_ctrl_app/models/data_package.dart';
 
 import '../error_handling/custom_error_handler.dart';
 
@@ -16,6 +17,8 @@ class BluetoothConnectionModel extends ChangeNotifier {
   final Guid _powerCharGuid = Guid('0058545f-5f5f-5f52-4148-435245574f54');
   final Guid _powerRxCharUuid = Guid('0058545f-5f5f-5f52-4148-435245574f55');
   final FlutterBluePlus _instance = FlutterBluePlus.instance;
+  final StreamController<String> _logStream =
+      StreamController<String>.broadcast();
 
   StreamSubscription<List<ScanResult>>? _scanResultSubscription;
   StreamSubscription<BluetoothDeviceState>? _deviceSubscription;
@@ -30,6 +33,7 @@ class BluetoothConnectionModel extends ChangeNotifier {
   BluetoothCharacteristic? _powerRxChar;
   BluetoothCharacteristic? _steeringChar;
   Timer? _timer;
+  DataPackage? _dataPackage;
 
   bool _connected = false;
   bool _isNotifying = false;
@@ -37,8 +41,10 @@ class BluetoothConnectionModel extends ChangeNotifier {
   bool get connected => _connected;
   bool get isNotifying => _isNotifying;
   bool get isScanning => _isScanning;
+  DataPackage get data => _dataPackage ?? DataPackage([]);
 
   Stream<List<int>>? get notifyStream => _powerRxChar?.value;
+  Stream<String> get log => _logStream.stream;
 
   void initialize() {
     startScan();
@@ -62,6 +68,7 @@ class BluetoothConnectionModel extends ChangeNotifier {
 
   void _handleScanState(bool event) {
     _isScanning = event;
+    _logStream.add('is scanning = $event');
     notifyListeners();
   }
 
@@ -100,14 +107,15 @@ class BluetoothConnectionModel extends ChangeNotifier {
 
   Future<void> toggleNotify() async {
     _isNotifying = !_isNotifying;
+    _logStream.add('is notifying; ${_powerRxChar?.isNotifying}');
+    _isNotifying = await _powerRxChar?.setNotifyValue(_isNotifying) ?? false;
     debugPrint('is notifying; ${_powerRxChar?.isNotifying}');
-
-    await _powerRxChar?.setNotifyValue((_powerRxChar?.isNotifying ?? false));
     if (_isNotifying) {
       _notifyStreamSubscription =
           _powerRxChar?.value.listen(_handleNotifyValues);
       await _powerRxChar?.read();
     }
+    notifyListeners();
   }
 
   void _listenConnections(List<BluetoothDevice> event) {
@@ -119,24 +127,30 @@ class BluetoothConnectionModel extends ChangeNotifier {
 
   void _handleDeviceState(BluetoothDeviceState? deviceState) async {
     debugPrint('device state = ${deviceState.toString()}');
+    _logStream.add('device state = ${deviceState.toString()}');
     if (deviceState != BluetoothDeviceState.connected &&
         deviceState != BluetoothDeviceState.connecting) {
       debugPrint('disconnected');
+      _logStream.add('disconnected');
       _connected = false;
       notifyListeners();
       try {
         debugPrint('connecting');
+        _logStream.add('connecting');
         await _device?.connect();
         _handleServices(await _device?.discoverServices());
       } on Exception catch (error, stacktrace) {
         CustomErrorHandler.handleFlutterError(error, stacktrace);
         debugPrint('Error: $error');
+        _logStream.add('Error: $error');
       }
     } else if (deviceState == BluetoothDeviceState.connecting) {
-      debugPrint('connecting');
+      debugPrint('is connecting');
+      _logStream.add('is connecting');
     } else if (deviceState == BluetoothDeviceState.connected) {
       _connected = true;
       debugPrint('connected');
+      _logStream.add('connected');
     }
     notifyListeners();
   }
@@ -147,34 +161,40 @@ class BluetoothConnectionModel extends ChangeNotifier {
         debugPrint('${element.uuid}');
         if (element.uuid == _serviceGuid) {
           debugPrint('found line ctrl service');
+          _logStream.add('found line ctrl service');
           _lineService = element;
-          _findCharacteristics(_lineService);
+          _handleCharacteristics(_lineService);
         }
       }
     }
   }
 
-  void _findCharacteristics(BluetoothService? service) {
+  void _handleCharacteristics(BluetoothService? service) {
     if (service != null) {
       for (var element in service.characteristics) {
         if (element.uuid == _leftCharGuid) {
           debugPrint('found left char');
+          _logStream.add('found left char');
           _leftChar = element;
         }
         if (element.uuid == _rightCharGuid) {
           debugPrint('found right char');
+          _logStream.add('found right char');
           _rightChar = element;
         }
         if (element.uuid == _powerCharGuid) {
           debugPrint('found power char');
+          _logStream.add('found power char');
           _powerChar = element;
         }
         if (element.uuid == _powerRxCharUuid) {
           debugPrint('found power rx char');
+          _logStream.add('found power rx char');
           _powerRxChar = element;
         }
         if (element.uuid == _steeringCharGuid) {
           debugPrint('found steering char');
+          _logStream.add('found steering char');
           _steeringChar = element;
         }
       }
@@ -187,6 +207,7 @@ class BluetoothConnectionModel extends ChangeNotifier {
         if (element.device.name == 'LineCtrl') {
           _instance.stopScan();
           debugPrint('found ${element.device.name}');
+          _logStream.add('found ${element.device.name}');
           _device = element.device;
           _deviceSubscription = _device?.state.listen(_handleDeviceState);
         }
@@ -196,7 +217,9 @@ class BluetoothConnectionModel extends ChangeNotifier {
 
   void _handleNotifyValues(List<int> values) {
     if (values.isNotEmpty) {
-      debugPrint('notify values: $values');
+      _dataPackage = DataPackage(values);
+      debugPrint('notify values: ${_dataPackage.toString()}');
+      _logStream.add('notify values: ${_dataPackage.toString()}');
     }
   }
 

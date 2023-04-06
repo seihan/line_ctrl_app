@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:line_ctrl_app/ui/widgets/accelerometer_bars.dart';
+import 'package:line_ctrl_app/ui/widgets/notify_button.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/bluetooth_connection_model.dart';
-import '../../models/sensor_model.dart';
 import '../../models/steering_model.dart';
 import '../widgets/control_buttons.dart';
-import '../widgets/data_view.dart';
 
 class SteeringScreen extends StatelessWidget {
   final BluetoothConnectionModel model;
@@ -18,9 +18,11 @@ class SteeringScreen extends StatelessWidget {
       child: Consumer<SteeringModel>(
         builder: (context, model, child) {
           return Scaffold(
+            backgroundColor: Colors.transparent,
             body: SafeArea(
               child: Stack(
                 children: <Widget>[
+                  const AccelerometerBars(),
                   Container(
                     padding: const EdgeInsets.all(30),
                     alignment: Alignment.bottomLeft,
@@ -51,6 +53,10 @@ class SteeringScreen extends StatelessWidget {
                       middle: model.rightStop,
                     ),
                   ),
+                  const Align(
+                    alignment: Alignment.topRight,
+                    child: NotifyButton(),
+                  ),
                 ],
               ),
             ),
@@ -62,31 +68,6 @@ class SteeringScreen extends StatelessWidget {
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-class SteeringDemo extends StatelessWidget {
-  final BluetoothConnectionModel model;
-  const SteeringDemo({Key? key, required this.model}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Consumer<SensorController>(
-          builder: (context, model, child) {
-            return DataView(
-              stream: model.vector2,
-            );
-          },
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => model.startScan(),
-        backgroundColor: model.isScanning ? Colors.red : Colors.green,
-        child: Icon(model.isScanning ? Icons.stop : Icons.search),
       ),
     );
   }
