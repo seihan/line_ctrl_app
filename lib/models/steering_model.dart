@@ -11,6 +11,9 @@ class SteeringModel extends ChangeNotifier {
   late SensorController? _sensorController;
   bool _paused = true;
   int _leftValue = 0;
+  bool _activeLeft = false;
+  bool _activeRight = false;
+  bool _activePower = false;
   int _rightValue = 0;
   int _powerValue = 0;
 
@@ -18,6 +21,9 @@ class SteeringModel extends ChangeNotifier {
   int get leftValue => _leftValue;
   int get rightValue => _rightValue;
   int get powerValue => _powerValue;
+  bool get activeLeft => _activeLeft;
+  bool get activeRight => _activeRight;
+  bool get activePower => _activePower;
 
   SteeringModel({required this.connectionModel}) {
     init();
@@ -35,6 +41,9 @@ class SteeringModel extends ChangeNotifier {
 
   void _handleSensorData(Vector2 vector2) async {
     if (connectionModel.connected && !_paused) {
+      _leftValue = vector2.y.toInt();
+      _rightValue = -vector2.y.toInt();
+      _powerValue = vector2.x.toInt();
       try {
         await connectionModel.write(
           type: ControllerType.steering,
@@ -47,6 +56,7 @@ class SteeringModel extends ChangeNotifier {
       } catch (error) {
         debugPrint(error.toString());
       }
+      notifyListeners();
     }
   }
 
@@ -62,110 +72,93 @@ class SteeringModel extends ChangeNotifier {
   }
 
   void _stop() async {
-    await connectionModel.write(
-      type: ControllerType.right,
-      value: 0,
-    );
-    await connectionModel.write(
-      type: ControllerType.left,
-      value: 0,
-    );
+    List<Future> futures = [
+      connectionModel.write(
+        type: ControllerType.right,
+        value: 0,
+      ),
+      connectionModel.write(
+        type: ControllerType.left,
+        value: 0,
+      ),
+      connectionModel.write(
+        type: ControllerType.power,
+        value: 0,
+      ),
+    ];
+    await Future.wait(futures);
   }
 
-  void leftUp() {
-    if (_leftValue < 255) {
-      _leftValue = _leftValue + 5;
-      notifyListeners();
+  bool toggleLeft(bool value) {
+    _activeLeft = value;
+    if (!_activeLeft) {
+      _leftValue = 0;
     }
+    connectionModel.connected
+        ? connectionModel.write(type: ControllerType.left, value: _leftValue)
+        : null;
+    notifyListeners();
+    return _activeLeft;
   }
 
-  void leftDown() {
-    if (_leftValue > -255) {
-      _leftValue = leftValue - 5;
-      notifyListeners();
+  double onChangedLeft(double value) {
+    if (value < 15 && value > -15) {
+      value = 0;
     }
-  }
-
-  void leftLeft() {
-    _leftValue = -(_leftValue.abs());
-    connectionModel.write(type: ControllerType.left, value: _leftValue);
+    _leftValue = value.toInt();
+    (_activeLeft && connectionModel.connected)
+        ? connectionModel.write(type: ControllerType.left, value: _leftValue)
+        : null;
     notifyListeners();
+    return value;
   }
 
-  void leftRight() {
-    _leftValue = _leftValue.abs();
-    connectionModel.write(type: ControllerType.left, value: _leftValue);
-    notifyListeners();
-  }
-
-  void leftStop() {
-    _leftValue = 0;
-    connectionModel.write(type: ControllerType.left, value: _leftValue);
-    notifyListeners();
-  }
-
-  void rightUp() {
-    if (_rightValue < 255) {
-      _rightValue = rightValue + 5;
-      notifyListeners();
+  bool toggleRight(bool value) {
+    _activeRight = value;
+    if (!_activeRight) {
+      _rightValue = 0;
     }
+    connectionModel.connected
+        ? connectionModel.write(type: ControllerType.right, value: _rightValue)
+        : null;
+    notifyListeners();
+    return _activeRight;
   }
 
-  void rightDown() {
-    if (_rightValue > -255) {
-      _rightValue = rightValue - 5;
-      notifyListeners();
+  double onChangedRight(double value) {
+    if (value < 15 && value > -15) {
+      value = 0;
     }
-  }
-
-  void rightLeft() {
-    _rightValue = -(_rightValue.abs());
-    connectionModel.write(type: ControllerType.right, value: _rightValue);
+    _rightValue = value.toInt();
+    (_activeRight && connectionModel.connected)
+        ? connectionModel.write(type: ControllerType.right, value: _rightValue)
+        : null;
     notifyListeners();
+    return value;
   }
 
-  void rightRight() {
-    _rightValue = _rightValue.abs();
-    connectionModel.write(type: ControllerType.right, value: _rightValue);
-    notifyListeners();
-  }
-
-  void rightStop() {
-    _rightValue = 0;
-    connectionModel.write(type: ControllerType.right, value: _rightValue);
-    notifyListeners();
-  }
-
-  void powerUp() {
-    if (_powerValue < 255) {
-      _powerValue = _powerValue + 5;
-      notifyListeners();
+  bool togglePower(bool value) {
+    _activePower = value;
+    if (!activePower) {
+      _powerValue = 0;
     }
+    connectionModel.connected
+        ? connectionModel.write(type: ControllerType.power, value: _powerValue)
+        : null;
+    notifyListeners();
+    return _activePower;
   }
 
-  void powerDown() {
-    if (_powerValue > -255) {
-      _powerValue = _powerValue - 5;
-      notifyListeners();
+  double onChangedPower(double value) {
+    if (value < 15 && value > -15) {
+      value = 0;
     }
-  }
-
-  void powerForward() {
-    _powerValue = -(_powerValue.abs());
-    connectionModel.write(type: ControllerType.power, value: _powerValue);
+    (_activePower && connectionModel.connected)
+        ? connectionModel.write(type: ControllerType.power, value: _powerValue)
+        : null;
+    _powerValue = value.toInt();
     notifyListeners();
-  }
-
-  void powerBackward() {
-    _powerValue = _powerValue.abs();
-    connectionModel.write(type: ControllerType.power, value: _powerValue);
-    notifyListeners();
-  }
-
-  void powerStop() {
-    _powerValue = 0;
-    connectionModel.write(type: ControllerType.power, value: _powerValue);
-    notifyListeners();
+    return value;
   }
 
   @override

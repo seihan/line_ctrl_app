@@ -32,7 +32,7 @@ class SensorController extends ChangeNotifier {
       inMin: 0,
       inMax: 10,
       outMin: 0,
-      outMax: 10,
+      outMax: 255,
     );
     _vector2.y = _vector2.y < 0
         ? Utils.reScale(
