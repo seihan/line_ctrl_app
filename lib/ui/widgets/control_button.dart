@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 class ControlButton extends StatelessWidget {
   final IconData icon;
   final double size;
+  final Color? color;
   final VoidCallback? onPressed;
 
   const ControlButton({
@@ -11,6 +12,7 @@ class ControlButton extends StatelessWidget {
     required this.icon,
     required this.size,
     this.onPressed,
+    this.color,
   }) : super(key: key);
 
   @override
@@ -19,6 +21,9 @@ class ControlButton extends StatelessWidget {
       height: size,
       width: size,
       child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+        ),
         onPressed: onPressed,
         child: Icon(icon),
       ),

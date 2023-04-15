@@ -12,10 +12,12 @@ class SteeringModel extends ChangeNotifier {
   bool _paused = true;
   int _leftValue = 0;
   int _rightValue = 0;
+  int _powerValue = 0;
 
   bool get paused => _paused;
   int get leftValue => _leftValue;
   int get rightValue => _rightValue;
+  int get powerValue => _powerValue;
 
   SteeringModel({required this.connectionModel}) {
     init();
@@ -37,6 +39,10 @@ class SteeringModel extends ChangeNotifier {
         await connectionModel.write(
           type: ControllerType.steering,
           value: vector2.y.toInt(),
+        );
+        await connectionModel.write(
+          type: ControllerType.power,
+          value: vector2.x.toInt(),
         );
       } catch (error) {
         debugPrint(error.toString());
@@ -127,6 +133,38 @@ class SteeringModel extends ChangeNotifier {
   void rightStop() {
     _rightValue = 0;
     connectionModel.write(type: ControllerType.right, value: _rightValue);
+    notifyListeners();
+  }
+
+  void powerUp() {
+    if (_powerValue < 255) {
+      _powerValue = _powerValue + 5;
+      notifyListeners();
+    }
+  }
+
+  void powerDown() {
+    if (_powerValue > -255) {
+      _powerValue = _powerValue - 5;
+      notifyListeners();
+    }
+  }
+
+  void powerForward() {
+    _powerValue = -(_powerValue.abs());
+    connectionModel.write(type: ControllerType.power, value: _powerValue);
+    notifyListeners();
+  }
+
+  void powerBackward() {
+    _powerValue = _powerValue.abs();
+    connectionModel.write(type: ControllerType.power, value: _powerValue);
+    notifyListeners();
+  }
+
+  void powerStop() {
+    _powerValue = 0;
+    connectionModel.write(type: ControllerType.power, value: _powerValue);
     notifyListeners();
   }
 

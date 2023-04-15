@@ -53,6 +53,22 @@ class SteeringScreen extends StatelessWidget {
                       middle: model.rightStop,
                     ),
                   ),
+                  Container(
+                    padding: const EdgeInsets.all(30),
+                    alignment: Alignment.bottomCenter,
+                    child: ControlButtons(
+                      title: 'power motor',
+                      value: model.powerValue,
+                      size: 69,
+                      color: Colors.red,
+                      active: model.paused,
+                      up: model.powerUp,
+                      down: model.powerDown,
+                      left: model.powerForward,
+                      right: model.powerBackward,
+                      middle: model.powerStop,
+                    ),
+                  ),
                   const Align(
                     alignment: Alignment.topRight,
                     child: NotifyButton(),

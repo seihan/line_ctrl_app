@@ -7,6 +7,7 @@ class ControlButtons extends StatelessWidget {
   final double? size;
   final bool? active;
   final int? value;
+  final Color? color;
   final VoidCallback? up;
   final VoidCallback? down;
   final VoidCallback? left;
@@ -26,6 +27,7 @@ class ControlButtons extends StatelessWidget {
     this.left,
     this.right,
     this.middle,
+    this.color,
   }) : super(key: key);
 
   @override
@@ -39,6 +41,7 @@ class ControlButtons extends StatelessWidget {
         children: [
           Text('$title = $value'),
           ControlButton(
+            color: color,
             icon: Icons.arrow_upward,
             size: size ?? _defaultSize,
             onPressed: (active ?? false) ? up : null,
@@ -46,18 +49,21 @@ class ControlButtons extends StatelessWidget {
           Row(
             children: [
               ControlButton(
+                color: color,
                 icon: Icons.arrow_back,
                 size: size ?? _defaultSize,
                 onPressed: (active ?? false) ? left : null,
               ),
               const Spacer(),
               ControlButton(
+                color: color,
                 icon: Icons.stop,
                 size: size ?? _defaultSize,
                 onPressed: (active ?? false) ? middle : null,
               ),
               const Spacer(),
               ControlButton(
+                color: color,
                 icon: Icons.arrow_forward,
                 size: size ?? _defaultSize,
                 onPressed: (active ?? false) ? right : null,
@@ -65,6 +71,7 @@ class ControlButtons extends StatelessWidget {
             ],
           ),
           ControlButton(
+            color: color,
             icon: Icons.arrow_downward,
             size: size ?? _defaultSize,
             onPressed: (active ?? false) ? down : null,
