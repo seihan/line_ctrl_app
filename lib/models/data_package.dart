@@ -19,28 +19,49 @@ class DataPackage {
   DataPackage(List<int> data) {
     List<double?> values = decodeValues(data);
 
-    if (values.length < 14) {
-      //todo: fix this
-      // length == 20
-      // may wrong starting point and / or decode logic
-      //throw const FormatException('Invalid number of values in package');
+    if (values.length != 5) {
       return;
+    } else {
+      final NotifyPackage package = NotifyPackage(
+        identifier: values[0]?.toInt(),
+        value_1: values[1],
+        value_2: values[2],
+        value_3: values[3],
+        value_4: values[4],
+      );
+      switch (package.identifier) {
+        case 0:
+          {
+            avgMotorCurrent = package.value_1;
+            avgInputCurrent = package.value_2;
+            dutyCycleNow = package.value_3;
+            rpm = package.value_4;
+          }
+          break;
+        case 1:
+          {
+            inpVoltage = package.value_1;
+            ampHours = package.value_2;
+            ampHoursCharged = package.value_3;
+            wattHours = package.value_4;
+          }
+          break;
+        case 2:
+          {
+            wattHoursCharged = package.value_1;
+            tachometer = package.value_2?.toInt();
+            tachometerAbs = package.value_3?.toInt();
+            tempMosfet = package.value_4;
+          }
+          break;
+        case 3:
+          {
+            tempMotor = package.value_1;
+            pidPos = package.value_2;
+          }
+          break;
+      }
     }
-
-    avgMotorCurrent = values[0];
-    avgInputCurrent = values[1];
-    dutyCycleNow = values[2];
-    rpm = values[3];
-    inpVoltage = values[4];
-    ampHours = values[5];
-    ampHoursCharged = values[6];
-    wattHours = values[7];
-    wattHoursCharged = values[8];
-    tachometer = values[9]?.toInt();
-    tachometerAbs = values[10]?.toInt();
-    tempMosfet = values[11];
-    tempMotor = values[12];
-    pidPos = values[13];
   }
 
   List<double?> decodeValues(List<int> data) {
@@ -67,11 +88,26 @@ class DataPackage {
 
   @override
   String toString() {
-    return 'DataPackage { avgMotorCurrent: $avgMotorCurrent, avgInputCurrent: $avgInputCurrent, '
+    return 'avgMotorCurrent: $avgMotorCurrent, avgInputCurrent: $avgInputCurrent, '
         'dutyCycleNow: $dutyCycleNow, rpm: $rpm, inpVoltage: $inpVoltage, '
         'ampHours: $ampHours, ampHoursCharged: $ampHoursCharged, wattHours: $wattHours, '
         'wattHoursCharged: $wattHoursCharged, tachometer: $tachometer, '
         'tachometerAbs: $tachometerAbs, tempMosfet: $tempMosfet, tempMotor: $tempMotor, '
         'pidPos: $pidPos }';
   }
+}
+
+class NotifyPackage {
+  final int? identifier;
+  final double? value_1;
+  final double? value_2;
+  final double? value_3;
+  final double? value_4;
+  NotifyPackage({
+    this.identifier,
+    this.value_1,
+    this.value_2,
+    this.value_3,
+    this.value_4,
+  });
 }

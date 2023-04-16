@@ -81,25 +81,25 @@ class BluetoothConnectionModel extends ChangeNotifier {
       case ControllerType.left:
         await _leftChar?.write(
           utf8.encode(value.toString()),
-          withoutResponse: true,
+          withoutResponse: false,
         );
         break;
       case ControllerType.right:
         await _rightChar?.write(
           utf8.encode(value.toString()),
-          withoutResponse: true,
+          withoutResponse: false,
         );
         break;
       case ControllerType.power:
         await _powerChar?.write(
           utf8.encode(value.toString()),
-          withoutResponse: true,
+          withoutResponse: false,
         );
         break;
       case ControllerType.steering:
         await _steeringChar?.write(
           utf8.encode(value.toString()),
-          withoutResponse: true,
+          withoutResponse: false,
         );
         break;
     }
@@ -113,7 +113,8 @@ class BluetoothConnectionModel extends ChangeNotifier {
     if (_isNotifying) {
       _notifyStreamSubscription =
           _powerRxChar?.value.listen(_handleNotifyValues);
-      await _powerRxChar?.read();
+    } else {
+      _notifyStreamSubscription?.cancel();
     }
     notifyListeners();
   }

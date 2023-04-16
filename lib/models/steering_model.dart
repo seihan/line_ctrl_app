@@ -5,6 +5,8 @@ import 'package:line_ctrl_app/models/bluetooth_connection_model.dart';
 import 'package:line_ctrl_app/models/sensor_model.dart';
 import 'package:vector_math/vector_math.dart';
 
+import '../utils.dart';
+
 class SteeringModel extends ChangeNotifier {
   final BluetoothConnectionModel connectionModel;
   StreamSubscription? _sensorStreamSubscription;
@@ -44,6 +46,9 @@ class SteeringModel extends ChangeNotifier {
       _leftValue = vector2.y.toInt();
       _rightValue = -vector2.y.toInt();
       _powerValue = vector2.x.toInt();
+      _leftValue = Utils.deadZone(value: _leftValue, min: -15, max: 15);
+      _rightValue = Utils.deadZone(value: _rightValue, min: -15, max: 15);
+      _powerValue = Utils.deadZone(value: _powerValue, min: -15, max: 15);
       try {
         await connectionModel.write(
           type: ControllerType.steering,
@@ -60,11 +65,11 @@ class SteeringModel extends ChangeNotifier {
     }
   }
 
-  void togglePause() {
+  void togglePause() async {
     _paused = !_paused;
     if (_paused) {
+      await _sensorStreamSubscription?.cancel();
       _stop();
-      _sensorStreamSubscription?.cancel();
     } else {
       _initSensorController();
     }
@@ -72,17 +77,16 @@ class SteeringModel extends ChangeNotifier {
   }
 
   void _stop() async {
+    _rightValue = 0;
+    _leftValue = 0;
+    _powerValue = 0;
     List<Future> futures = [
       connectionModel.write(
-        type: ControllerType.right,
-        value: 0,
-      ),
-      connectionModel.write(
-        type: ControllerType.left,
-        value: 0,
-      ),
-      connectionModel.write(
         type: ControllerType.power,
+        value: _powerValue,
+      ),
+      connectionModel.write(
+        type: ControllerType.steering,
         value: 0,
       ),
     ];
@@ -102,10 +106,8 @@ class SteeringModel extends ChangeNotifier {
   }
 
   double onChangedLeft(double value) {
-    if (value < 15 && value > -15) {
-      value = 0;
-    }
     _leftValue = value.toInt();
+    _leftValue = Utils.deadZone(value: _leftValue, min: -15, max: 15);
     (_activeLeft && connectionModel.connected)
         ? connectionModel.write(type: ControllerType.left, value: _leftValue)
         : null;
@@ -126,10 +128,8 @@ class SteeringModel extends ChangeNotifier {
   }
 
   double onChangedRight(double value) {
-    if (value < 15 && value > -15) {
-      value = 0;
-    }
     _rightValue = value.toInt();
+    _rightValue = Utils.deadZone(value: _rightValue, min: -15, max: 15);
     (_activeRight && connectionModel.connected)
         ? connectionModel.write(type: ControllerType.right, value: _rightValue)
         : null;
@@ -150,13 +150,11 @@ class SteeringModel extends ChangeNotifier {
   }
 
   double onChangedPower(double value) {
-    if (value < 15 && value > -15) {
-      value = 0;
-    }
+    _powerValue = value.toInt();
+    _powerValue = Utils.deadZone(value: _powerValue, min: -15, max: 15);
     (_activePower && connectionModel.connected)
         ? connectionModel.write(type: ControllerType.power, value: _powerValue)
         : null;
-    _powerValue = value.toInt();
     notifyListeners();
     return value;
   }

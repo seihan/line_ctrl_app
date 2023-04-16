@@ -13,4 +13,16 @@ class Utils {
       return 0;
     }
   }
+
+  /// Returns the 0 if the [min] or [max] constrain is reached
+  static int deadZone({
+    int value = 0,
+    int min = 0,
+    int max = 0,
+  }) {
+    if (value < max && value > min) {
+      value = 0;
+    }
+    return value;
+  }
 }

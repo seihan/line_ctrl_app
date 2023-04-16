@@ -20,12 +20,14 @@ class ControlSlider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(
-          value.toString(),
-          textAlign: TextAlign.center,
+        Padding(
+          padding: const EdgeInsets.only(top: 25),
+          child: Text(
+            value.toString(),
+            textAlign: TextAlign.center,
+          ),
         ),
-        SizedBox(
-          height: MediaQuery.of(context).size.height * 0.5,
+        Expanded(
           child: RotatedBox(
             quarterTurns: 3,
             child: Slider(
@@ -50,8 +52,12 @@ class ControlSlider extends StatelessWidget {
             ),
           ),
         ),
-        const Spacer(),
-        Text(title),
+        Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: Text(
+            title,
+          ),
+        ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 10),
           child: Switch(
