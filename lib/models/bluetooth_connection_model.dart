@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:line_ctrl_app/models/bluetooth_notification_handler.dart';
 import 'package:line_ctrl_app/models/data_package.dart';
 
 import '../error_handling/custom_error_handler.dart';
@@ -32,7 +33,6 @@ class BluetoothConnectionModel extends ChangeNotifier {
   BluetoothCharacteristic? _powerChar;
   BluetoothCharacteristic? _powerRxChar;
   BluetoothCharacteristic? _steeringChar;
-  Timer? _timer;
   DataPackage? _dataPackage;
 
   bool _connected = false;
@@ -107,15 +107,17 @@ class BluetoothConnectionModel extends ChangeNotifier {
 
   Future<void> toggleNotify() async {
     _isNotifying = !_isNotifying;
-    _logStream.add('is notifying; ${_powerRxChar?.isNotifying}');
-    _isNotifying = await _powerRxChar?.setNotifyValue(_isNotifying) ?? false;
-    debugPrint('is notifying; ${_powerRxChar?.isNotifying}');
-    if (_isNotifying) {
-      _notifyStreamSubscription =
-          _powerRxChar?.value.listen(_handleNotifyValues);
-    } else {
+    if (!_isNotifying) {
       _notifyStreamSubscription?.cancel();
     }
+    final BluetoothNotificationHandler notificationHandler =
+        BluetoothNotificationHandler(
+      powerRxChar: _powerRxChar,
+      setNotify: _isNotifying,
+    );
+    notificationHandler.startNotifications()?.listen(_handleNotifyValues);
+    _logStream.add('is notifying; ${notificationHandler.isNotifying}');
+    debugPrint('is notifying; ${notificationHandler.isNotifying}');
     notifyListeners();
   }
 
@@ -232,7 +234,6 @@ class BluetoothConnectionModel extends ChangeNotifier {
     _notifyStreamSubscription?.cancel();
     _connectionSubscription?.cancel();
     _device?.disconnect();
-    _timer?.cancel();
     super.dispose();
   }
 }
