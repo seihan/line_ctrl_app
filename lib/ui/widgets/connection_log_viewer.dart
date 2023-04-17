@@ -12,8 +12,9 @@ class ConnectionLogViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 200,
+    return Container(
+      padding: const EdgeInsets.only(top: 50),
+      height: 115,
       child: TextStreamWidget(textStream: model.log),
     );
   }
