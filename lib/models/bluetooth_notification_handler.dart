@@ -15,3 +15,9 @@ class BluetoothNotificationHandler {
 
   bool get isNotifying => powerRxChar?.isNotifying ?? false;
 }
+
+class BluetoothWriteHandler {
+  final BluetoothCharacteristic? characteristic;
+
+  BluetoothWriteHandler({this.characteristic});
+}

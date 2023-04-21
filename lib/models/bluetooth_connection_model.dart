@@ -26,6 +26,7 @@ class BluetoothConnectionModel extends ChangeNotifier {
   StreamSubscription<bool>? _scanSubscription;
   StreamSubscription<List<BluetoothDevice>>? _connectionSubscription;
   StreamSubscription? _notifyStreamSubscription;
+  StreamSubscription<String>? _errorSubscription;
   BluetoothDevice? _device;
   BluetoothService? _lineService;
   BluetoothCharacteristic? _leftChar;
@@ -47,11 +48,18 @@ class BluetoothConnectionModel extends ChangeNotifier {
   Stream<String> get log => _logStream.stream;
 
   void initialize() {
+    _errorSubscription = CustomErrorHandler.errorStream.listen(_onError);
     startScan();
     _listenScanResults();
     _connectionSubscription = Stream.periodic(const Duration(seconds: 5))
         .asyncMap((_) => _instance.connectedDevices)
         .listen(_listenConnections);
+  }
+
+  void _onError(String error) async {
+    if (error.isNotEmpty) {
+      _logStream.add(error);
+    }
   }
 
   void startScan() {
@@ -234,6 +242,7 @@ class BluetoothConnectionModel extends ChangeNotifier {
     _notifyStreamSubscription?.cancel();
     _connectionSubscription?.cancel();
     _device?.disconnect();
+    _errorSubscription?.cancel();
     super.dispose();
   }
 }
