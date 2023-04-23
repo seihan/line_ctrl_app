@@ -27,6 +27,7 @@ class BluetoothConnectionModel extends ChangeNotifier {
   StreamSubscription<List<BluetoothDevice>>? _connectionSubscription;
   StreamSubscription? _notifyStreamSubscription;
   StreamSubscription<String>? _errorSubscription;
+  StreamSubscription? _stateSubscription;
   BluetoothDevice? _device;
   BluetoothService? _lineService;
   BluetoothCharacteristic? _leftChar;
@@ -39,27 +40,36 @@ class BluetoothConnectionModel extends ChangeNotifier {
   bool _connected = false;
   bool _isNotifying = false;
   bool _isScanning = false;
+  BluetoothState _state = BluetoothState.unknown;
   bool get connected => _connected;
   bool get isNotifying => _isNotifying;
   bool get isScanning => _isScanning;
   DataPackage get data => _dataPackage ?? DataPackage([]);
+  BluetoothState get state => _state;
 
   Stream<List<int>>? get notifyStream => _powerRxChar?.value;
   Stream<String> get log => _logStream.stream;
 
   void initialize() {
     _errorSubscription = CustomErrorHandler.errorStream.listen(_onError);
-    startScan();
-    _listenScanResults();
+    _stateSubscription = _instance.state.listen(_listenBluetoothState);
     _connectionSubscription = Stream.periodic(const Duration(seconds: 5))
         .asyncMap((_) => _instance.connectedDevices)
         .listen(_listenConnections);
+    if (_state != BluetoothState.off) {
+      startScan();
+    }
   }
 
-  void _onError(String error) async {
+  void _onError(String error) {
     if (error.isNotEmpty) {
       _logStream.add(error);
     }
+  }
+
+  void _listenBluetoothState(BluetoothState event) {
+    _state = event;
+    notifyListeners();
   }
 
   void startScan() {
@@ -68,7 +78,7 @@ class BluetoothConnectionModel extends ChangeNotifier {
     }
     _scanSubscription?.cancel();
     _scanResultSubscription?.cancel();
-    _scanResultSubscription = _instance.scanResults.listen(_handleScanResult);
+    _scanResultSubscription = _instance.scanResults.listen(_onScanResult);
     _scanSubscription = _instance.isScanning.listen(_handleScanState);
     debugPrint('start scanning');
     _instance.startScan(timeout: const Duration(seconds: 5));
@@ -80,36 +90,34 @@ class BluetoothConnectionModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _listenScanResults() {
-    _scanResultSubscription = _instance.scanResults.listen(_handleScanResult);
-  }
-
   Future<void> write({int value = 0, required ControllerType type}) async {
-    switch (type) {
-      case ControllerType.left:
-        await _leftChar?.write(
-          utf8.encode(value.toString()),
-          withoutResponse: false,
-        );
-        break;
-      case ControllerType.right:
-        await _rightChar?.write(
-          utf8.encode(value.toString()),
-          withoutResponse: false,
-        );
-        break;
-      case ControllerType.power:
-        await _powerChar?.write(
-          utf8.encode(value.toString()),
-          withoutResponse: false,
-        );
-        break;
-      case ControllerType.steering:
-        await _steeringChar?.write(
-          utf8.encode(value.toString()),
-          withoutResponse: false,
-        );
-        break;
+    if (_state == BluetoothState.on) {
+      switch (type) {
+        case ControllerType.left:
+          await _leftChar?.write(
+            utf8.encode(value.toString()),
+            withoutResponse: false,
+          );
+          break;
+        case ControllerType.right:
+          await _rightChar?.write(
+            utf8.encode(value.toString()),
+            withoutResponse: false,
+          );
+          break;
+        case ControllerType.power:
+          await _powerChar?.write(
+            utf8.encode(value.toString()),
+            withoutResponse: false,
+          );
+          break;
+        case ControllerType.steering:
+          await _steeringChar?.write(
+            utf8.encode(value.toString()),
+            withoutResponse: false,
+          );
+          break;
+      }
     }
   }
 
@@ -212,8 +220,8 @@ class BluetoothConnectionModel extends ChangeNotifier {
     }
   }
 
-  void _handleScanResult(List<ScanResult> results) {
-    if (results.isNotEmpty) {
+  void _onScanResult(List<ScanResult> results) {
+    if (results.isNotEmpty && _device == null) {
       for (var element in results) {
         if (element.device.name == 'LineCtrl') {
           _instance.stopScan();
@@ -243,6 +251,7 @@ class BluetoothConnectionModel extends ChangeNotifier {
     _connectionSubscription?.cancel();
     _device?.disconnect();
     _errorSubscription?.cancel();
+    _stateSubscription?.cancel();
     super.dispose();
   }
 }

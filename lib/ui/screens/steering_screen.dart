@@ -16,7 +16,7 @@ class SteeringScreen extends StatelessWidget {
     return ChangeNotifierProvider<SteeringModel>(
       create: (_) => SteeringModel(connectionModel: model),
       child: Consumer<SteeringModel>(
-        builder: (context, model, child) {
+        builder: (context, steering, child) {
           return Scaffold(
             backgroundColor: Colors.transparent,
             body: SafeArea(
@@ -28,24 +28,24 @@ class SteeringScreen extends StatelessWidget {
                     children: [
                       ControlSlider(
                         title: 'Left',
-                        value: model.leftValue.toDouble(),
-                        active: model.activeLeft,
-                        onChanged: model.onChangedLeft,
-                        onPressed: model.toggleLeft,
+                        value: steering.leftValue.toDouble(),
+                        active: steering.activeLeft,
+                        onChanged: steering.onChangedLeft,
+                        onPressed: steering.toggleLeft,
                       ),
                       ControlSlider(
                         title: 'Power',
-                        value: model.powerValue.toDouble(),
-                        active: model.activePower,
-                        onChanged: model.onChangedPower,
-                        onPressed: model.togglePower,
+                        value: steering.powerValue.toDouble(),
+                        active: steering.activePower,
+                        onChanged: steering.onChangedPower,
+                        onPressed: steering.togglePower,
                       ),
                       ControlSlider(
                         title: 'Right',
-                        value: model.rightValue.toDouble(),
-                        active: model.activeRight,
-                        onChanged: model.onChangedRight,
-                        onPressed: model.toggleRight,
+                        value: steering.rightValue.toDouble(),
+                        active: steering.activeRight,
+                        onChanged: steering.onChangedRight,
+                        onPressed: steering.toggleRight,
                       ),
                     ],
                   ),
@@ -53,13 +53,35 @@ class SteeringScreen extends StatelessWidget {
                     alignment: Alignment.topRight,
                     child: NotifyButton(),
                   ),
+                  if (model.connected == false)
+                    Container(
+                      color: Colors.black.withAlpha(80),
+                      child: const Center(
+                        child: Icon(
+                          Icons.no_drinks_sharp,
+                          size: 200.0,
+                          color: Colors.white54,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
             floatingActionButton: FloatingActionButton(
-              onPressed: model.togglePause,
+              onPressed: model.connected
+                  ? steering.togglePause
+                  : model.isScanning
+                      ? null
+                      : model.startScan,
+              backgroundColor: model.isScanning ? Colors.red : Colors.green,
               child: Icon(
-                model.paused ? Icons.play_arrow : Icons.pause,
+                model.connected
+                    ? steering.paused
+                        ? Icons.play_arrow
+                        : Icons.pause
+                    : model.isScanning
+                        ? Icons.stop
+                        : Icons.search,
               ),
             ),
           );

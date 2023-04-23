@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:line_ctrl_app/models/permission_model.dart';
 import 'package:line_ctrl_app/models/sensor_model.dart';
-import 'package:line_ctrl_app/ui/screens/bluetooth_off_screen.dart';
 import 'package:line_ctrl_app/ui/screens/home.dart';
 import 'package:line_ctrl_app/ui/screens/permission_screen.dart';
 import 'package:provider/provider.dart';
@@ -46,14 +45,12 @@ class LineCtrlApp extends StatelessWidget {
       ],
       child: MaterialApp(
         theme: ThemeData.dark(),
-        home: Consumer2<BluetoothStateModel, PermissionModel>(
-          builder: (context, bluetoothState, permissionModel, child) {
-            return bluetoothState.on
-                ? permissionModel.permissionSection ==
-                        PermissionSection.permissionGranted
-                    ? const HomeScreen()
-                    : const PermissionScreen()
-                : const BluetoothOffScreen();
+        home: Consumer<PermissionModel>(
+          builder: (context, permissionModel, child) {
+            return permissionModel.permissionSection ==
+                    PermissionSection.permissionGranted
+                ? const HomeScreen()
+                : const PermissionScreen();
           },
         ),
       ),
