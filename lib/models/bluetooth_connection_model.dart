@@ -7,10 +7,14 @@ import 'package:line_ctrl_app/models/bluetooth_notification_handler.dart';
 import 'package:line_ctrl_app/models/data_package.dart';
 
 import '../error_handling/custom_error_handler.dart';
+import '../ui/widgets/bluetooth_alert_dialog.dart';
 
 enum ControllerType { right, left, power, steering }
 
 class BluetoothConnectionModel extends ChangeNotifier {
+  final GlobalKey<NavigatorState> navigatorKey;
+  BluetoothConnectionModel({required this.navigatorKey});
+
   final Guid _serviceGuid = Guid('0058545f-5f5f-5f52-4148-435245574f50');
   final Guid _rightCharGuid = Guid('0058545f-5f5f-5f52-4148-435245574f51');
   final Guid _leftCharGuid = Guid('0058545f-5f5f-5f52-4148-435245574f52');
@@ -56,7 +60,7 @@ class BluetoothConnectionModel extends ChangeNotifier {
     _connectionSubscription = Stream.periodic(const Duration(seconds: 5))
         .asyncMap((_) => _instance.connectedDevices)
         .listen(_listenConnections);
-    if (_state != BluetoothState.off) {
+    if (_state == BluetoothState.on) {
       startScan();
     }
   }
@@ -69,6 +73,14 @@ class BluetoothConnectionModel extends ChangeNotifier {
 
   void _listenBluetoothState(BluetoothState event) {
     _state = event;
+    if (_state == BluetoothState.off && navigatorKey.currentState != null) {
+      showDialog(
+        context: navigatorKey.currentState!.overlay!.context,
+        builder: (BuildContext context) {
+          return const BluetoothAlertDialog();
+        },
+      );
+    }
     notifyListeners();
   }
 
@@ -91,33 +103,31 @@ class BluetoothConnectionModel extends ChangeNotifier {
   }
 
   Future<void> write({int value = 0, required ControllerType type}) async {
-    if (_state == BluetoothState.on) {
-      switch (type) {
-        case ControllerType.left:
-          await _leftChar?.write(
-            utf8.encode(value.toString()),
-            withoutResponse: false,
-          );
-          break;
-        case ControllerType.right:
-          await _rightChar?.write(
-            utf8.encode(value.toString()),
-            withoutResponse: false,
-          );
-          break;
-        case ControllerType.power:
-          await _powerChar?.write(
-            utf8.encode(value.toString()),
-            withoutResponse: false,
-          );
-          break;
-        case ControllerType.steering:
-          await _steeringChar?.write(
-            utf8.encode(value.toString()),
-            withoutResponse: false,
-          );
-          break;
-      }
+    switch (type) {
+      case ControllerType.left:
+        await _leftChar?.write(
+          utf8.encode(value.toString()),
+          withoutResponse: false,
+        );
+        break;
+      case ControllerType.right:
+        await _rightChar?.write(
+          utf8.encode(value.toString()),
+          withoutResponse: false,
+        );
+        break;
+      case ControllerType.power:
+        await _powerChar?.write(
+          utf8.encode(value.toString()),
+          withoutResponse: false,
+        );
+        break;
+      case ControllerType.steering:
+        await _steeringChar?.write(
+          utf8.encode(value.toString()),
+          withoutResponse: false,
+        );
+        break;
     }
   }
 

@@ -12,22 +12,19 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft]);
-    return ChangeNotifierProvider<BluetoothConnectionModel>(
-      create: (_) => BluetoothConnectionModel()..initialize(),
-      child: Consumer<BluetoothConnectionModel>(
-        builder: (context, connectionModel, child) {
-          return Stack(
-            children: [
-              ConnectionLogViewer(
-                model: connectionModel,
-              ),
-              SteeringScreen(
-                model: connectionModel,
-              ),
-            ],
-          );
-        },
-      ),
+    return Consumer<BluetoothConnectionModel>(
+      builder: (context, connectionModel, child) {
+        return Stack(
+          children: [
+            ConnectionLogViewer(
+              model: connectionModel,
+            ),
+            SteeringScreen(
+              model: connectionModel,
+            ),
+          ],
+        );
+      },
     );
   }
 }

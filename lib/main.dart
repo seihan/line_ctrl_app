@@ -8,9 +8,10 @@ import 'package:line_ctrl_app/ui/screens/permission_screen.dart';
 import 'package:provider/provider.dart';
 
 import 'error_handling/custom_error_handler.dart';
-import 'models/bluetooth_state_model.dart';
+import 'models/bluetooth_connection_model.dart';
 
 void main() {
+  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
   FlutterError.onError = (FlutterErrorDetails details) {
     // Handle the Flutter error and stack trace
     CustomErrorHandler.handleFlutterError(
@@ -19,7 +20,11 @@ void main() {
     );
   };
   runZonedGuarded(() {
-    runApp(const LineCtrlApp());
+    runApp(
+      LineCtrlApp(
+        navigatorKey: navigatorKey,
+      ),
+    );
   }, (error, stackTrace) {
     // Handle the platform error and stack trace
     CustomErrorHandler.handlePlatformError(error, stackTrace);
@@ -27,23 +32,26 @@ void main() {
 }
 
 class LineCtrlApp extends StatelessWidget {
-  const LineCtrlApp({Key? key}) : super(key: key);
+  final GlobalKey<NavigatorState> navigatorKey;
+  const LineCtrlApp({Key? key, required this.navigatorKey}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<BluetoothStateModel>(
-          create: (_) => BluetoothStateModel(),
-        ),
         ChangeNotifierProvider(
           create: (_) => SensorController(),
         ),
         ChangeNotifierProvider(
           create: (_) => PermissionModel()..requestLocationPermission(),
         ),
+        ChangeNotifierProvider<BluetoothConnectionModel>(
+          create: (_) => BluetoothConnectionModel(navigatorKey: navigatorKey)
+            ..initialize(),
+        ),
       ],
       child: MaterialApp(
+        navigatorKey: navigatorKey,
         theme: ThemeData.dark(),
         home: Consumer<PermissionModel>(
           builder: (context, permissionModel, child) {
