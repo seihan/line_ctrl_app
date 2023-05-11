@@ -17,7 +17,7 @@ class HomeScreen extends StatelessWidget {
         return Stack(
           children: [
             ConnectionLogViewer(
-              model: connectionModel,
+              stream: connectionModel.log,
             ),
             SteeringScreen(
               model: connectionModel,

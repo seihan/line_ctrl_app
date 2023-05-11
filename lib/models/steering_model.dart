@@ -5,6 +5,7 @@ import 'package:line_ctrl_app/models/bluetooth_connection_model.dart';
 import 'package:line_ctrl_app/models/sensor_model.dart';
 import 'package:vector_math/vector_math.dart';
 
+import '../enums/controller_type.dart';
 import '../utils.dart';
 
 class SteeringModel extends ChangeNotifier {

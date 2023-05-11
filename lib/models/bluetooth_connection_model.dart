@@ -6,10 +6,9 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:line_ctrl_app/models/bluetooth_notification_handler.dart';
 import 'package:line_ctrl_app/models/data_package.dart';
 
+import '../enums/controller_type.dart';
 import '../error_handling/custom_error_handler.dart';
 import '../ui/widgets/bluetooth_alert_dialog.dart';
-
-enum ControllerType { right, left, power, steering }
 
 class BluetoothConnectionModel extends ChangeNotifier {
   final GlobalKey<NavigatorState> navigatorKey;
