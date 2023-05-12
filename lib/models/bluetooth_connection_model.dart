@@ -66,7 +66,7 @@ class BluetoothConnectionModel extends ChangeNotifier {
 
   void _onError(String error) {
     if (error.isNotEmpty) {
-      _logStream.add(error);
+      _logStream.add('${DateTime.now()} $error');
     }
   }
 
