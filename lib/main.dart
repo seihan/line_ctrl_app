@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:line_ctrl_app/models/permission_model.dart';
 import 'package:line_ctrl_app/models/sensor_model.dart';
+import 'package:line_ctrl_app/models/vesc_state_model.dart';
 import 'package:line_ctrl_app/ui/screens/home.dart';
 import 'package:line_ctrl_app/ui/screens/permission_screen.dart';
 import 'package:provider/provider.dart';
@@ -46,8 +47,13 @@ class LineCtrlApp extends StatelessWidget {
           create: (_) => PermissionModel()..requestLocationPermission(),
         ),
         ChangeNotifierProvider<BluetoothConnectionModel>(
-          create: (_) => BluetoothConnectionModel(navigatorKey: navigatorKey)
-            ..initialize(),
+          create: (_) => BluetoothConnectionModel(
+            navigatorKey: navigatorKey,
+            vescStateModel: VescStateModel(),
+          )..initialize(),
+        ),
+        ChangeNotifierProvider<VescStateModel>(
+          create: (_) => VescStateModel(),
         ),
       ],
       child: MaterialApp(

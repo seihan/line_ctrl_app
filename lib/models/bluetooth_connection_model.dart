@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:line_ctrl_app/models/bluetooth_notification_handler.dart';
-import 'package:line_ctrl_app/models/data_package.dart';
+import 'package:line_ctrl_app/models/vesc_state_model.dart';
 
 import '../enums/controller_type.dart';
 import '../error_handling/custom_error_handler.dart';
@@ -12,7 +12,11 @@ import '../ui/widgets/bluetooth_alert_dialog.dart';
 
 class BluetoothConnectionModel extends ChangeNotifier {
   final GlobalKey<NavigatorState> navigatorKey;
-  BluetoothConnectionModel({required this.navigatorKey});
+  final VescStateModel vescStateModel;
+  BluetoothConnectionModel({
+    required this.vescStateModel,
+    required this.navigatorKey,
+  });
 
   final Guid _serviceGuid = Guid('0058545f-5f5f-5f52-4148-435245574f50');
   final Guid _rightCharGuid = Guid('0058545f-5f5f-5f52-4148-435245574f51');
@@ -38,7 +42,6 @@ class BluetoothConnectionModel extends ChangeNotifier {
   BluetoothCharacteristic? _powerChar;
   BluetoothCharacteristic? _powerRxChar;
   BluetoothCharacteristic? _steeringChar;
-  DataPackage? _dataPackage;
 
   bool _connected = false;
   bool _isNotifying = false;
@@ -47,7 +50,6 @@ class BluetoothConnectionModel extends ChangeNotifier {
   bool get connected => _connected;
   bool get isNotifying => _isNotifying;
   bool get isScanning => _isScanning;
-  DataPackage get data => _dataPackage ?? DataPackage([]);
   BluetoothState get state => _state;
 
   Stream<List<int>>? get notifyStream => _powerRxChar?.value;
@@ -245,9 +247,9 @@ class BluetoothConnectionModel extends ChangeNotifier {
 
   void _handleNotifyValues(List<int> values) {
     if (values.isNotEmpty) {
-      _dataPackage = DataPackage(values);
-      debugPrint('notify values: ${_dataPackage.toString()}');
-      _logStream.add('notify values: ${_dataPackage.toString()}');
+      debugPrint(values.toString());
+      vescStateModel.update(values);
+      debugPrint('notify values: ${vescStateModel.toString()}');
     }
   }
 

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../../models/bluetooth_connection_model.dart';
 import '../../models/steering_model.dart';
+import '../widgets/vesc_data_display.dart';
 
 class SteeringScreen extends StatelessWidget {
   final BluetoothConnectionModel model;
@@ -23,6 +24,10 @@ class SteeringScreen extends StatelessWidget {
               child: Stack(
                 children: <Widget>[
                   const AccelerometerBars(),
+                  const Align(
+                    alignment: Alignment.topRight,
+                    child: VescDataDisplay(),
+                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
