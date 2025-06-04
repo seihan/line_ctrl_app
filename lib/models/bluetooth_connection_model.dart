@@ -24,12 +24,11 @@ class BluetoothConnectionModel extends ChangeNotifier {
   final Guid _steeringCharGuid = Guid('0058545f-5f5f-5f52-4148-435245574f53');
   final Guid _powerCharGuid = Guid('0058545f-5f5f-5f52-4148-435245574f54');
   final Guid _powerRxCharUuid = Guid('0058545f-5f5f-5f52-4148-435245574f55');
-  final FlutterBluePlus _instance = FlutterBluePlus.instance;
   final StreamController<String> _logStream =
       StreamController<String>.broadcast();
 
   StreamSubscription<List<ScanResult>>? _scanResultSubscription;
-  StreamSubscription<BluetoothDeviceState>? _deviceSubscription;
+  StreamSubscription<BluetoothConnectionState>? _deviceSubscription;
   StreamSubscription<bool>? _scanSubscription;
   StreamSubscription<List<BluetoothDevice>>? _connectionSubscription;
   StreamSubscription? _notifyStreamSubscription;
@@ -46,22 +45,23 @@ class BluetoothConnectionModel extends ChangeNotifier {
   bool _connected = false;
   bool _isNotifying = false;
   bool _isScanning = false;
-  BluetoothState _state = BluetoothState.unknown;
+  BluetoothAdapterState _state = BluetoothAdapterState.unknown;
   bool get connected => _connected;
   bool get isNotifying => _isNotifying;
   bool get isScanning => _isScanning;
-  BluetoothState get state => _state;
+  BluetoothAdapterState get state => _state;
 
-  Stream<List<int>>? get notifyStream => _powerRxChar?.value;
+  Stream<List<int>>? get notifyStream => _powerRxChar?.lastValueStream;
   Stream<String> get log => _logStream.stream;
 
   void initialize() {
     _errorSubscription = CustomErrorHandler.errorStream.listen(_onError);
-    _stateSubscription = _instance.state.listen(_listenBluetoothState);
+    _stateSubscription =
+        FlutterBluePlus.adapterState.listen(_listenBluetoothState);
     _connectionSubscription = Stream.periodic(const Duration(seconds: 5))
-        .asyncMap((_) => _instance.connectedDevices)
+        .asyncMap((_) => FlutterBluePlus.connectedDevices)
         .listen(_listenConnections);
-    if (_state == BluetoothState.on) {
+    if (_state == BluetoothAdapterState.on) {
       startScan();
     }
   }
@@ -72,9 +72,10 @@ class BluetoothConnectionModel extends ChangeNotifier {
     }
   }
 
-  void _listenBluetoothState(BluetoothState event) {
+  void _listenBluetoothState(BluetoothAdapterState event) {
     _state = event;
-    if (_state == BluetoothState.off && navigatorKey.currentState != null) {
+    if (_state == BluetoothAdapterState.off &&
+        navigatorKey.currentState != null) {
       showDialog(
         context: navigatorKey.currentState!.overlay!.context,
         builder: (BuildContext context) {
@@ -91,10 +92,10 @@ class BluetoothConnectionModel extends ChangeNotifier {
     }
     _scanSubscription?.cancel();
     _scanResultSubscription?.cancel();
-    _scanResultSubscription = _instance.scanResults.listen(_onScanResult);
-    _scanSubscription = _instance.isScanning.listen(_handleScanState);
+    _scanResultSubscription = FlutterBluePlus.scanResults.listen(_onScanResult);
+    _scanSubscription = FlutterBluePlus.isScanning.listen(_handleScanState);
     debugPrint('start scanning');
-    _instance.startScan(timeout: const Duration(seconds: 5));
+    FlutterBluePlus.startScan(timeout: const Duration(seconds: 5));
   }
 
   void _handleScanState(bool event) {
@@ -155,11 +156,10 @@ class BluetoothConnectionModel extends ChangeNotifier {
     }
   }
 
-  void _handleDeviceState(BluetoothDeviceState? deviceState) async {
+  void _handleDeviceState(BluetoothConnectionState? deviceState) async {
     debugPrint('device state = ${deviceState.toString()}');
     _logStream.add('device state = ${deviceState.toString()}');
-    if (deviceState != BluetoothDeviceState.connected &&
-        deviceState != BluetoothDeviceState.connecting) {
+    if (deviceState != BluetoothConnectionState.connected) {
       debugPrint('disconnected');
       _logStream.add('disconnected');
       _connected = false;
@@ -174,10 +174,7 @@ class BluetoothConnectionModel extends ChangeNotifier {
         debugPrint('Error: $error');
         _logStream.add('Error: $error');
       }
-    } else if (deviceState == BluetoothDeviceState.connecting) {
-      debugPrint('is connecting');
-      _logStream.add('is connecting');
-    } else if (deviceState == BluetoothDeviceState.connected) {
+    } else if (deviceState == BluetoothConnectionState.connected) {
       _connected = true;
       debugPrint('connected');
       _logStream.add('connected');
@@ -234,12 +231,13 @@ class BluetoothConnectionModel extends ChangeNotifier {
   void _onScanResult(List<ScanResult> results) {
     if (results.isNotEmpty && _device == null) {
       for (var element in results) {
-        if (element.device.name == 'LineCtrl') {
-          _instance.stopScan();
-          debugPrint('found ${element.device.name}');
-          _logStream.add('found ${element.device.name}');
+        if (element.device.platformName == 'LineCtrl') {
+          FlutterBluePlus.stopScan();
+          debugPrint('found ${element.device.platformName}');
+          _logStream.add('found ${element.device.platformName}');
           _device = element.device;
-          _deviceSubscription = _device?.state.listen(_handleDeviceState);
+          _deviceSubscription =
+              _device?.connectionState.listen(_handleDeviceState);
         }
       }
     }

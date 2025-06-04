@@ -4,23 +4,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 class BluetoothStateModel extends ChangeNotifier {
-  BluetoothState _state = BluetoothState.unknown;
+  BluetoothAdapterState _state = BluetoothAdapterState.unknown;
 
-  bool get on => _state == BluetoothState.on;
+  bool get on => _state == BluetoothAdapterState.on;
 
   BluetoothStateModel() {
     _startListening();
   }
 
-  StreamSubscription<BluetoothState>? _subscription;
+  StreamSubscription<BluetoothAdapterState>? _subscription;
 
   void _startListening() {
     _subscription?.cancel();
-    _subscription =
-        FlutterBluePlus.instance.state.listen(_listenBluetoothState);
+    _subscription = FlutterBluePlus.adapterState.listen(_listenBluetoothState);
   }
 
-  void _listenBluetoothState(BluetoothState event) {
+  void _listenBluetoothState(BluetoothAdapterState event) {
     _state = event;
     notifyListeners();
   }

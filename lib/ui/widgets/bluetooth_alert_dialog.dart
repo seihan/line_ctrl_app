@@ -18,7 +18,7 @@ class BluetoothAlertDialog extends StatelessWidget {
         TextButton(
           onPressed: () async {
             Navigator.of(context).pop();
-            await FlutterBluePlus.instance.turnOn();
+            await FlutterBluePlus.turnOn();
           },
           child: const Text('Turn On'),
         ),

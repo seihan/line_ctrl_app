@@ -10,7 +10,7 @@ class BluetoothNotificationHandler {
 
   Stream<List<int>>? startNotifications() {
     powerRxChar?.setNotifyValue(setNotify);
-    return powerRxChar?.value;
+    return powerRxChar?.lastValueStream;
   }
 
   bool get isNotifying => powerRxChar?.isNotifying ?? false;
