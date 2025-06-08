@@ -23,6 +23,7 @@ if (flutterVersionName == null) {
 }
 
 android {
+    namespace = "org.linectrl.app"
     compileSdkVersion 34
 
     compileOptions {
