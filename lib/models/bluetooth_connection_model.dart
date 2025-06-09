@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -113,10 +114,14 @@ class BluetoothConnectionModel extends ChangeNotifier {
         );
         break;
       case ControllerType.right:
+        final Stopwatch stopwatch = Stopwatch()..start();
         await _rightChar?.write(
           utf8.encode(value.toString()),
           withoutResponse: false,
         );
+        stopwatch.stop();
+        final elapsedMilliseconds = stopwatch.elapsedMilliseconds;
+        debugPrint('timeToSend: $elapsedMilliseconds ms');
         break;
       case ControllerType.power:
         await _powerChar?.write(
@@ -131,6 +136,13 @@ class BluetoothConnectionModel extends ChangeNotifier {
         );
         break;
     }
+  }
+
+  Future<void> writeSteering(Uint8List msg) async {
+    await _steeringChar?.write(
+      msg,
+      withoutResponse: false,
+    );
   }
 
   Future<void> toggleNotify() async {

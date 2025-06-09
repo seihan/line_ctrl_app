@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:line_ctrl_app/utils.dart';
 import 'package:vector_math/vector_math.dart' as vec;
 
 /// A container with to view stream values
@@ -25,6 +26,13 @@ class DataView extends StatelessWidget {
       builder: (c, snapshot) {
         if (snapshot.hasData) {
           double x = snapshot.data?.x ?? 0;
+          x = Utils.reScale(
+            value: x,
+            inMin: -255,
+            inMax: 255,
+            outMin: -screenSize.height * 0.35,
+            outMax: screenSize.height * 0.35,
+          );
           double y = snapshot.data?.y ?? 0;
           return Column(
             children: <Widget>[
@@ -72,13 +80,38 @@ class DataView extends StatelessWidget {
                       ],
                     ),
               // vertical bar
-              Container(
-                color: Colors.blue,
-                height: x < (screenSize.height * 0.9)
-                    ? x
-                    : (screenSize.height * 0.9),
-                width: 10,
-              ),
+              x < 0
+                  ? Column(
+                      // For negative x: bar from center to top
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          // Space above the bar in the top half.
+                          // x is negative, so this is (screenSize.height * 0.5) - abs(x_scaled).
+                          height: (screenSize.height * 0.5) + x,
+                        ),
+                        Container(
+                          color: Colors.blue,
+                          height: x * -1, // bar height, abs(x_scaled)
+                          width: 10,
+                        ),
+                      ],
+                    )
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          height: screenSize.height * 0.5,
+                        ),
+                        Container(
+                          color: Colors.blue,
+                          height: x < (screenSize.height * 0.5)
+                              ? x
+                              : (screenSize.height * 0.5),
+                          width: 10,
+                        ),
+                      ],
+                    ),
             ],
           );
         } else {

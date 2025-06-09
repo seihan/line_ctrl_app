@@ -67,7 +67,7 @@ class ControlButtons extends StatelessWidget {
                 icon: Icons.arrow_forward,
                 size: size ?? _defaultSize,
                 onPressed: (active ?? false) ? right : null,
-              )
+              ),
             ],
           ),
           ControlButton(

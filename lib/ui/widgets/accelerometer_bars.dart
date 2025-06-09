@@ -12,7 +12,7 @@ class AccelerometerBars extends StatelessWidget {
     return Consumer<SensorController>(
       builder: (context, model, child) {
         return DataView(
-          stream: model.vector2,
+          stream: model.vector2Ui,
         );
       },
     );

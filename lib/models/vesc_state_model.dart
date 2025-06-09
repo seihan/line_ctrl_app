@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -10,10 +9,6 @@ class VescStateModel extends ChangeNotifier {
   factory VescStateModel() {
     return _instance;
   }
-
-  final StreamController<VescStateModel> _controller =
-      StreamController.broadcast();
-  Stream<VescStateModel> get stateStream => _controller.stream;
 
   double _avgMotorCurrent = 0;
   double _avgInputCurrent = 0;
@@ -94,13 +89,7 @@ class VescStateModel extends ChangeNotifier {
           break;
         }
     }
-    _controller.add(this);
     notifyListeners();
   }
 
-  @override
-  void dispose() {
-    _controller.close();
-    super.dispose();
-  }
 }

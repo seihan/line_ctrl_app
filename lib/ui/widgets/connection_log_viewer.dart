@@ -12,7 +12,7 @@ class ConnectionLogViewer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.only(top: 50),
-      height: 115,
+      height: 145,
       child: TextStreamWidget(textStream: stream),
     );
   }
