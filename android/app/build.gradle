@@ -24,7 +24,7 @@ if (flutterVersionName == null) {
 
 android {
     namespace = "org.linectrl.app"
-    compileSdkVersion 34
+    compileSdkVersion 36
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -42,7 +42,7 @@ android {
     defaultConfig {
         applicationId "org.linectrl.app"
         minSdkVersion flutter.minSdkVersion
-        targetSdkVersion 34
+        targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
