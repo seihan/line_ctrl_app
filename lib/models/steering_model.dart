@@ -49,23 +49,25 @@ class SteeringModel extends ChangeNotifier {
   void _handleSensorData(Vector2 vector2) async {
     final now = DateTime.now();
     if (connectionModel.connected && !_paused) {
-      _leftValue = vector2.y.toInt();
-      _rightValue = -vector2.y.toInt();
-      _powerValue = vector2.x.toInt();
-      _leftValue =
-          Utils.deadZone(value: _leftValue, min: lowerLimit, max: upperLimit);
-      _rightValue =
-          Utils.deadZone(value: _rightValue, min: lowerLimit, max: upperLimit);
-      _powerValue =
-          Utils.deadZone(value: _powerValue, min: lowerLimit, max: upperLimit);
       try {
         if (_lastSampleTime == null ||
             now.difference(_lastSampleTime!) >= _samplingInterval) {
           _lastSampleTime = now;
-          final steeringValue = vector2.y.toInt();
-          final powerValue = -vector2.x.toInt(); // flip the sign
-          // brake -> negative
-          // rotate -> positive
+          // create zero area on both axis
+          int steeringValue = Utils.deadZone(
+            min: -15,
+            max: 15,
+            value: vector2.y.toInt(),
+            // negative -> left
+            // positive -> right
+          );
+          final powerValue = Utils.deadZone(
+            min: -15,
+            max: 15,
+            value: -vector2.x.toInt(), // flip the sign
+            // negative -> brake
+            // positive -> rotate (wind up)
+          );
           final msg = Utils.concatSignedInt16Values(steeringValue, powerValue);
           await connectionModel.writeSteering(msg);
         }

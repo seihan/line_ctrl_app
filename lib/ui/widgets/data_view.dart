@@ -4,7 +4,7 @@ import 'package:vector_math/vector_math.dart' as vec;
 
 /// A container with to view stream values
 /// a [stream] is required which has to offers [Vector2] values
-/// the output is a text widget with leading optional string list [names] or
+/// the output is a text widget with leading
 /// 'x: value ... y: value'
 /// only [x] and [y] values are printed
 /// two bars visualizes the vertical and horizontal axis by varying it's
@@ -12,10 +12,8 @@ import 'package:vector_math/vector_math.dart' as vec;
 /// as long as no data is available a circular progress indicator is shown
 class DataView extends StatelessWidget {
   final Stream<vec.Vector2>? stream;
-  final List<String>? names;
 
-  const DataView({Key? key, required this.stream, this.names})
-      : super(key: key);
+  const DataView({Key? key, required this.stream}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -39,12 +37,8 @@ class DataView extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  (names != null)
-                      ? Text('${names?.first}: ${x.toStringAsFixed(2)}')
-                      : Text('x: ${x.toStringAsFixed(2)}\t'),
-                  (names != null)
-                      ? Text('${names?.last}: ${y.toStringAsFixed(2)}')
-                      : Text('y: ${y.toStringAsFixed(2)}'),
+                  Text('x: ${x.toStringAsFixed(0)}\t'),
+                  Text('y: ${y.toStringAsFixed(0)}'),
                 ],
               ),
               // horizontal bar

@@ -71,7 +71,7 @@ class ControlSlider extends StatelessWidget {
               textStyle: const TextStyle(fontSize: 17, color: Colors.white),
               boxStyle: FlutterSliderTooltipBox(
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.7),
+                  color: Colors.black.withValues(alpha: 0.7),
                 ),
               ),
               format: (String value) {
