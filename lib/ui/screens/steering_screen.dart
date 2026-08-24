@@ -9,13 +9,14 @@ import '../../models/steering_model.dart';
 import '../widgets/vesc_data_display.dart';
 
 class SteeringScreen extends StatelessWidget {
-  final BluetoothConnectionModel model;
-  const SteeringScreen({Key? key, required this.model}) : super(key: key);
+  final BluetoothConnectionModel connectionModel;
+  const SteeringScreen({Key? key, required this.connectionModel})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<SteeringModel>(
-      create: (_) => SteeringModel(connectionModel: model),
+      create: (_) => SteeringModel(connectionModel: connectionModel),
       child: Consumer<SteeringModel>(
         builder: (context, steering, child) {
           return Scaffold(
@@ -25,7 +26,7 @@ class SteeringScreen extends StatelessWidget {
                 children: <Widget>[
                   const AccelerometerBars(),
                   const Align(
-                    alignment: Alignment.topRight,
+                    alignment: Alignment.topCenter,
                     child: VescDataDisplay(),
                   ),
                   Row(
@@ -58,7 +59,7 @@ class SteeringScreen extends StatelessWidget {
                     alignment: Alignment.topRight,
                     child: NotifyButton(),
                   ),
-                  if (model.connected == false)
+                  if (connectionModel.connected == false)
                     Container(
                       color: Colors.black.withAlpha(80),
                       child: const Center(
@@ -73,18 +74,19 @@ class SteeringScreen extends StatelessWidget {
               ),
             ),
             floatingActionButton: FloatingActionButton(
-              onPressed: model.connected
+              onPressed: connectionModel.connected
                   ? steering.togglePause
-                  : model.isScanning
+                  : connectionModel.isScanning
                       ? null
-                      : model.startScan,
-              backgroundColor: model.isScanning ? Colors.red : Colors.green,
+                      : connectionModel.startScan,
+              backgroundColor:
+                  connectionModel.isScanning ? Colors.red : Colors.green,
               child: Icon(
-                model.connected
+                connectionModel.connected
                     ? steering.paused
                         ? Icons.play_arrow
                         : Icons.pause
-                    : model.isScanning
+                    : connectionModel.isScanning
                         ? Icons.stop
                         : Icons.search,
               ),

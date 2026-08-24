@@ -5,20 +5,15 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:line_ctrl_app/models/bluetooth_notification_handler.dart';
+import 'package:line_ctrl_app/models/permission_model.dart';
 import 'package:line_ctrl_app/models/vesc_state_model.dart';
+import 'package:line_ctrl_app/ui/screens/permission_screen.dart';
+import 'package:line_ctrl_app/ui/widgets/dialogs.dart';
 
 import '../enums/controller_type.dart';
-import '../error_handling/custom_error_handler.dart';
-import '../ui/widgets/bluetooth_alert_dialog.dart';
+import '../error_handling/app_error_handler.dart';
 
 class BluetoothConnectionModel extends ChangeNotifier {
-  final GlobalKey<NavigatorState> navigatorKey;
-  final VescStateModel vescStateModel;
-  BluetoothConnectionModel({
-    required this.vescStateModel,
-    required this.navigatorKey,
-  });
-
   final Guid _serviceGuid = Guid('0058545f-5f5f-5f52-4148-435245574f50');
   final Guid _rightCharGuid = Guid('0058545f-5f5f-5f52-4148-435245574f51');
   final Guid _leftCharGuid = Guid('0058545f-5f5f-5f52-4148-435245574f52');
@@ -50,45 +45,46 @@ class BluetoothConnectionModel extends ChangeNotifier {
   bool get connected => _connected;
   bool get isNotifying => _isNotifying;
   bool get isScanning => _isScanning;
-  BluetoothAdapterState get state => _state;
 
   Stream<List<int>>? get notifyStream => _powerRxChar?.lastValueStream;
   Stream<String> get log => _logStream.stream;
 
-  void initialize() {
-    _errorSubscription = CustomErrorHandler.errorStream.listen(_onError);
+  void _startListeningConnectionsTimer() {
     _stateSubscription =
         FlutterBluePlus.adapterState.listen(_listenBluetoothState);
     _connectionSubscription = Stream.periodic(const Duration(seconds: 5))
         .asyncMap((_) => FlutterBluePlus.connectedDevices)
         .listen(_listenConnections);
-    if (_state == BluetoothAdapterState.on) {
-      startScan();
-    }
-  }
-
-  void _onError(String error) {
-    if (error.isNotEmpty) {
-      _logStream.add('${DateTime.now()} $error');
-    }
   }
 
   void _listenBluetoothState(BluetoothAdapterState event) {
     _state = event;
-    if (_state == BluetoothAdapterState.off &&
-        navigatorKey.currentState != null) {
-      showDialog(
-        context: navigatorKey.currentState!.overlay!.context,
-        builder: (BuildContext context) {
-          return const BluetoothAlertDialog();
-        },
-      );
+    if (_state == BluetoothAdapterState.off) {
+      AppDialogs.showBluetoothAdapterStateAlert();
     }
     notifyListeners();
   }
 
-  void startScan() {
-    if (_isScanning) {
+  Future<void> startScan() async {
+    final navigatorKey = AppDialogs.navigatorKey;
+    final permissionModel = PermissionModel();
+    if (permissionModel.permissionSection ==
+        PermissionSection.noLocationPermissionPermanent) {
+      navigatorKey.currentState?.push(
+        MaterialPageRoute(builder: (_) => const PermissionScreen()),
+      );
+      return;
+    }
+    if (permissionModel.permissionSection !=
+        PermissionSection.permissionGranted) {
+      await permissionModel.requestLocationPermission().then((granted) {
+        if (granted) {
+          _stateSubscription =
+              FlutterBluePlus.adapterState.listen(_listenBluetoothState);
+          _startListeningConnectionsTimer();
+        }
+      });
+    } else if (_isScanning || _state != BluetoothAdapterState.on) {
       return;
     }
     _scanSubscription?.cancel();
@@ -182,7 +178,7 @@ class BluetoothConnectionModel extends ChangeNotifier {
         await _device?.connect();
         _handleServices(await _device?.discoverServices());
       } on Exception catch (error, stacktrace) {
-        CustomErrorHandler.handleFlutterError(error, stacktrace);
+        AppErrorHandler.handleFlutterError(error, stacktrace);
         debugPrint('Error: $error');
         _logStream.add('Error: $error');
       }
@@ -258,8 +254,8 @@ class BluetoothConnectionModel extends ChangeNotifier {
   void _handleNotifyValues(List<int> values) {
     if (values.isNotEmpty) {
       debugPrint(values.toString());
-      vescStateModel.update(values);
-      debugPrint('notify values: ${vescStateModel.toString()}');
+      VescStateModel().update(values);
+      debugPrint('notify values: ${VescStateModel().toString()}');
     }
   }
 

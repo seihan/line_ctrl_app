@@ -20,7 +20,7 @@ class HomeScreen extends StatelessWidget {
               stream: connectionModel.log,
             ),
             SteeringScreen(
-              model: connectionModel,
+              connectionModel: connectionModel,
             ),
           ],
         );

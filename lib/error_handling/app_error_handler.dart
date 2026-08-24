@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-class CustomErrorHandler {
+class AppErrorHandler {
   static final StreamController<String> _streamController =
       StreamController<String>.broadcast();
 

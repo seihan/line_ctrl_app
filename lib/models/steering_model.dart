@@ -32,13 +32,7 @@ class SteeringModel extends ChangeNotifier {
   bool get activeRight => _activeRight;
   bool get activePower => _activePower;
 
-  SteeringModel({required this.connectionModel}) {
-    init();
-  }
-
-  void init() {
-    _initSensorController();
-  }
+  SteeringModel({required this.connectionModel});
 
   void _initSensorController() {
     _sensorController = SensorController();
