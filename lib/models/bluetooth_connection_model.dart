@@ -152,7 +152,7 @@ class BluetoothConnectionModel extends ChangeNotifier {
     }
     final BluetoothNotificationHandler notificationHandler =
         BluetoothNotificationHandler(
-      powerRxChar: _powerRxChar,
+      notifyChar: _powerRxChar,
       setNotify: _isNotifying,
     );
     notificationHandler.startNotifications()?.listen(_handleNotifyValues);
