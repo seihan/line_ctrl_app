@@ -11,47 +11,78 @@ class VescDataDisplay extends StatelessWidget {
     // Use the Consumer widget to listen to changes in the VescStateModel
     return Consumer<VescStateModel>(
       builder: (context, vescState, child) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              'Average Input Current: ${vescState.avgInputCurrent.toStringAsFixed(6)}',
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Average Input Current: ${vescState.avgInputCurrent.toStringAsFixed(3)}',
+                ),
+                Text(
+                  'Average Motor Current: ${vescState.avgMotorCurrent.toStringAsFixed(3)}',
+                ),
+                Text(
+                  'Duty Cycle Now: ${vescState.dutyCycleNow.toStringAsFixed(3)}',
+                ),
+                Text(
+                  'RPM: ${vescState.rpm.toStringAsFixed(3)}',
+                ),
+                Text(
+                  'Input Voltage: ${vescState.inpVoltage.toStringAsFixed(3)}',
+                ),
+                Text(
+                  'Amp Hours: ${vescState.ampHours.toStringAsFixed(3)}',
+                ),
+                Text(
+                  'Amp Hours Charged: ${vescState.ampHoursCharged.toStringAsFixed(3)}',
+                ),
+                Text(
+                  'Watt Hours: ${vescState.wattHours.toStringAsFixed(3)}',
+                ),
+                Text(
+                  'Watt Hours Charged: ${vescState.wattHoursCharged.toStringAsFixed(3)}',
+                ),
+                Text('Tachometer: ${vescState.tachometer}'),
+              ],
             ),
-            Text(
-              'Average Motor Current: ${vescState.avgMotorCurrent.toStringAsFixed(6)}',
+            const SizedBox(
+              width: 20,
             ),
-            Text(
-              'Duty Cycle Now: ${vescState.dutyCycleNow.toStringAsFixed(3)}',
-            ),
-            Text(
-              'RPM: ${vescState.rpm.toStringAsFixed(3)}',
-            ),
-            Text(
-              'Input Voltage: ${vescState.inpVoltage.toStringAsFixed(3)}',
-            ),
-            Text(
-              'Amp Hours: ${vescState.ampHours.toStringAsFixed(6)}',
-            ),
-            Text(
-              'Amp Hours Charged: ${vescState.ampHoursCharged.toStringAsFixed(6)}',
-            ),
-            Text(
-              'Watt Hours: ${vescState.wattHours.toStringAsFixed(6)}',
-            ),
-            Text(
-              'Watt Hours Charged: ${vescState.wattHoursCharged.toStringAsFixed(6)}',
-            ),
-            Text('Tachometer: ${vescState.tachometer}'),
-            Text('Tachometer Absolute: ${vescState.tachometerAbs}'),
-            Text(
-              'Temperature Mosfet: ${vescState.tempMosfet.toStringAsFixed(3)}',
-            ),
-            Text(
-              'Temperature Motor: ${vescState.tempMotor.toStringAsFixed(3)}',
-            ),
-            Text(
-              'PID Position: ${vescState.pidPos.toStringAsFixed(3)}',
-            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Tachometer Absolute: ${vescState.tachometerAbs}'),
+                Text(
+                  'Temperature Mosfet: ${vescState.tempMosfet.toStringAsFixed(3)}',
+                ),
+                Text(
+                  'Temperature Motor: ${vescState.tempMotor.toStringAsFixed(3)}',
+                ),
+                Text(
+                  'PID Position: ${vescState.pidPos.toStringAsFixed(3)}',
+                ),
+                Text(
+                  'Steering Left Limit: ${vescState.steeringLeftLimit}',
+                ),
+                Text(
+                  'Steering Left Forward: ${vescState.steeringLeftForward}',
+                ),
+                Text(
+                  'Steering Right Limit: ${vescState.steeringRightLimit}',
+                ),
+                Text(
+                  'Steering Right Forward: ${vescState.steeringRightForward}',
+                ),
+                Text(
+                  'Steering Left Speed: ${vescState.steeringLeftSpeed}',
+                ),
+                Text(
+                  'Steering Right Speed: ${vescState.steeringRightSpeed}',
+                ),
+              ],
+            )
           ],
         );
       },

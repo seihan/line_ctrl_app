@@ -64,7 +64,7 @@ class SteeringScreen extends StatelessWidget {
                       color: Colors.black.withAlpha(80),
                       child: const Center(
                         child: Icon(
-                          Icons.no_drinks_sharp,
+                          Icons.mobiledata_off_sharp,
                           size: 200.0,
                           color: Colors.white54,
                         ),

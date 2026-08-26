@@ -24,6 +24,12 @@ class VescStateModel extends ChangeNotifier {
   double _tempMosfet = 0;
   double _tempMotor = 0;
   double _pidPos = 0;
+  int _steeringLeftLimit = 0;
+  int _steeringLeftForward = 0;
+  int _steeringRightLimit = 0;
+  int _steeringRightForward = 0;
+  int _steeringLeftSpeed = 0;
+  int _steeringRightSpeed = 0;
 
   double get avgInputCurrent => _avgInputCurrent;
 
@@ -53,7 +59,19 @@ class VescStateModel extends ChangeNotifier {
 
   double get pidPos => _pidPos;
 
-  update(List<int> data) {
+  bool get steeringLeftLimit => _steeringLeftLimit == 1;
+
+  bool get steeringLeftForward => _steeringLeftForward == 1;
+
+  bool get steeringRightLimit => _steeringRightLimit == 1;
+
+  bool get steeringRightForward => _steeringRightForward == 1;
+
+  int get steeringLeftSpeed => _steeringLeftSpeed;
+
+  int get steeringRightSpeed => _steeringRightSpeed;
+
+  void update(List<int> data) {
     var buffer = ByteData.view(Uint8List.fromList(data).buffer);
     int identifier = buffer.getInt32(0, Endian.little);
 
@@ -88,8 +106,17 @@ class VescStateModel extends ChangeNotifier {
           _pidPos = buffer.getFloat32(8, Endian.little);
           break;
         }
+      case 4:
+        {
+          _steeringRightForward = buffer.getUint8(4);
+          _steeringRightLimit = buffer.getUint8(5);
+          _steeringLeftForward = buffer.getUint8(6);
+          _steeringLeftLimit = buffer.getUint8(7);
+          _steeringRightSpeed = buffer.getInt16(8, Endian.little);
+          _steeringLeftSpeed = buffer.getInt16(10, Endian.little);
+          break;
+        }
     }
     notifyListeners();
   }
-
 }
