@@ -5,12 +5,23 @@ import 'package:permission_handler/permission_handler.dart';
 enum PermissionSection {
   noLocationPermission, // Permission denied, but not forever
   noLocationPermissionPermanent, // Permission denied forever
+  // API 31 Android 12+
+  noBluetoothScanPermission, // Permission denied, but not forever
+  noBluetoothScanPermissionPermanent, // Permission denied forever
   permissionGranted, // Permission granted
   unknown, // Permission unknown
 }
 
 class PermissionModel extends ChangeNotifier {
+  static final PermissionModel _instance = PermissionModel._internal();
+  PermissionModel._internal();
+  factory PermissionModel() {
+    return _instance;
+  }
   PermissionSection _permissionSection = PermissionSection.unknown;
+
+  bool _locationPermissionGranted = false;
+  bool _bluetoothPermissionGranted = false;
 
   PermissionSection get permissionSection => _permissionSection;
 
@@ -21,19 +32,41 @@ class PermissionModel extends ChangeNotifier {
     }
   }
 
-  /// Request the location permission and updates the UI accordingly
   Future<bool> requestLocationPermission() async {
-    PermissionStatus result;
-    result = await Permission.location.request();
+    final result = await Permission.location.request();
 
     if (result.isGranted) {
-      permissionSection = PermissionSection.permissionGranted;
-      return true;
+      _locationPermissionGranted = true;
     } else if (result.isPermanentlyDenied) {
+      _locationPermissionGranted = false;
       permissionSection = PermissionSection.noLocationPermissionPermanent;
     } else {
+      _locationPermissionGranted = false;
       permissionSection = PermissionSection.noLocationPermission;
     }
-    return false;
+    _updateOverallPermissionStatus();
+    return _locationPermissionGranted;
+  }
+
+  Future<bool> requestBluetoothScanPermission() async {
+    final result = await Permission.bluetoothScan.request();
+
+    if (result.isGranted) {
+      _bluetoothPermissionGranted = true;
+    } else if (result.isPermanentlyDenied) {
+      _bluetoothPermissionGranted = false;
+      permissionSection = PermissionSection.noBluetoothScanPermissionPermanent;
+    } else {
+      _bluetoothPermissionGranted = false;
+      permissionSection = PermissionSection.noBluetoothScanPermission;
+    }
+    _updateOverallPermissionStatus();
+    return _bluetoothPermissionGranted;
+  }
+
+  void _updateOverallPermissionStatus() {
+    if (_locationPermissionGranted && _bluetoothPermissionGranted) {
+      permissionSection = PermissionSection.permissionGranted;
+    }
   }
 }

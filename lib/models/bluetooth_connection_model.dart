@@ -41,6 +41,7 @@ class BluetoothConnectionModel extends ChangeNotifier {
   bool _connected = false;
   bool _isNotifying = false;
   bool _isScanning = false;
+  bool _timerIsRunnig = false;
   BluetoothAdapterState _state = BluetoothAdapterState.unknown;
   bool get connected => _connected;
   bool get isNotifying => _isNotifying;
@@ -50,6 +51,10 @@ class BluetoothConnectionModel extends ChangeNotifier {
   Stream<String> get log => _logStream.stream;
 
   void _startListeningConnectionsTimer() {
+    if (_timerIsRunnig) {
+      return;
+    }
+    _timerIsRunnig = true;
     _stateSubscription =
         FlutterBluePlus.adapterState.listen(_listenBluetoothState);
     _connectionSubscription = Stream.periodic(const Duration(seconds: 5))
@@ -66,33 +71,50 @@ class BluetoothConnectionModel extends ChangeNotifier {
   }
 
   Future<void> startScan() async {
-    final navigatorKey = AppDialogs.navigatorKey;
-    final permissionModel = PermissionModel();
-    if (permissionModel.permissionSection ==
-        PermissionSection.noLocationPermissionPermanent) {
-      navigatorKey.currentState?.push(
-        MaterialPageRoute(builder: (_) => const PermissionScreen()),
-      );
-      return;
-    }
-    if (permissionModel.permissionSection !=
+    if (PermissionModel().permissionSection !=
         PermissionSection.permissionGranted) {
-      await permissionModel.requestLocationPermission().then((granted) {
-        if (granted) {
-          _stateSubscription =
-              FlutterBluePlus.adapterState.listen(_listenBluetoothState);
-          _startListeningConnectionsTimer();
+      final locationGranted =
+          await PermissionModel().requestLocationPermission();
+
+      if (locationGranted) {
+        final bluetoothGranted =
+            await PermissionModel().requestBluetoothScanPermission();
+
+        if (bluetoothGranted) {
+          _startSubscriptions();
+          _startScanning();
+        } else {
+          _goToPermissionScreen();
         }
-      });
-    } else if (_isScanning || _state != BluetoothAdapterState.on) {
-      return;
+      } else {
+        _goToPermissionScreen();
+      }
+    } else {
+      _startSubscriptions();
+      _startScanning();
     }
+  }
+
+  void _goToPermissionScreen() {
+    AppDialogs.navigatorKey.currentState?.push(
+      MaterialPageRoute(builder: (_) => const PermissionScreen()),
+    );
+  }
+
+  void _startScanning() {
     _scanSubscription?.cancel();
     _scanResultSubscription?.cancel();
     _scanResultSubscription = FlutterBluePlus.scanResults.listen(_onScanResult);
     _scanSubscription = FlutterBluePlus.isScanning.listen(_handleScanState);
     debugPrint('start scanning');
     FlutterBluePlus.startScan(timeout: const Duration(seconds: 5));
+  }
+
+  void _startSubscriptions() {
+    _stateSubscription?.cancel();
+    _stateSubscription =
+        FlutterBluePlus.adapterState.listen(_listenBluetoothState);
+    _startListeningConnectionsTimer();
   }
 
   void _handleScanState(bool event) {

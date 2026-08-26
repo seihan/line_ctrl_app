@@ -13,14 +13,12 @@ class PermissionScreen extends StatefulWidget {
 
 class _PermissionScreenState extends State<PermissionScreen>
     with WidgetsBindingObserver {
-  late final PermissionModel _permissionModel;
   bool _detectPermission = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _permissionModel = PermissionModel();
   }
 
   @override
@@ -37,67 +35,91 @@ class _PermissionScreenState extends State<PermissionScreen>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed &&
         _detectPermission &&
-        (_permissionModel.permissionSection ==
-            PermissionSection.noLocationPermissionPermanent)) {
+        (PermissionModel().permissionSection ==
+                PermissionSection.noLocationPermissionPermanent ||
+            PermissionModel().permissionSection ==
+                PermissionSection.noBluetoothScanPermissionPermanent)) {
       _detectPermission = false;
-      _permissionModel.requestLocationPermission();
+      PermissionModel().requestLocationPermission();
     } else if (state == AppLifecycleState.paused &&
-        _permissionModel.permissionSection ==
-            PermissionSection.noLocationPermissionPermanent) {
+        (PermissionModel().permissionSection ==
+                PermissionSection.noLocationPermissionPermanent ||
+            PermissionModel().permissionSection ==
+                PermissionSection.noBluetoothScanPermissionPermanent)) {
       _detectPermission = true;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: _permissionModel,
-      child: Consumer<PermissionModel>(
-        builder: (context, model, child) {
-          Widget widget;
+    return Consumer<PermissionModel>(
+      builder: (context, model, child) {
+        Widget widget;
 
-          switch (model.permissionSection) {
-            case PermissionSection.noLocationPermission:
-              widget = LocationPermissions(
-                isPermanent: false,
-                onPressed: _checkPermissions,
-              );
-              break;
-            case PermissionSection.noLocationPermissionPermanent:
-              widget = LocationPermissions(
-                isPermanent: true,
-                onPressed: _checkPermissions,
-              );
-              break;
-            case PermissionSection.permissionGranted:
-              widget = StartButton(onPressed: _goToHomeScreen);
-              break;
-            case PermissionSection.unknown:
-              widget = LocationPermissions(
-                isPermanent: false,
-                onPressed: _checkPermissions,
-              );
-              break;
-          }
+        switch (model.permissionSection) {
+          case PermissionSection.noLocationPermission:
+            widget = LocationPermissions(
+              isPermanent: false,
+              onPressed: _checkLocationPermissions,
+            );
+            break;
+          case PermissionSection.noLocationPermissionPermanent:
+            widget = LocationPermissions(
+              isPermanent: true,
+              onPressed: _checkLocationPermissions,
+            );
+            break;
+          case PermissionSection.noBluetoothScanPermission:
+            widget = LocationPermissions(
+              isPermanent: false,
+              onPressed: _checkBluetoothScanPermissions,
+              checkBluetooth: true,
+            );
+            break;
+          case PermissionSection.noBluetoothScanPermissionPermanent:
+            widget = LocationPermissions(
+              isPermanent: true,
+              onPressed: _checkBluetoothScanPermissions,
+              checkBluetooth: true,
+            );
+            break;
+          case PermissionSection.permissionGranted:
+            widget = StartButton(onPressed: _goToHomeScreen);
+            break;
+          case PermissionSection.unknown:
+            widget = LocationPermissions(
+              isPermanent: false,
+              onPressed: _checkLocationPermissions,
+            );
+            break;
+        }
 
-          return Scaffold(
-            appBar: AppBar(
-              title: const Text('Handle permissions'),
-            ),
-            body: widget,
-          );
-        },
-      ),
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Handle permissions'),
+          ),
+          body: widget,
+        );
+      },
     );
   }
 
-  /// Check if the pick file permission is granted,
+  /// Check if location permission is granted,
   /// if it's not granted then request it.
   /// If it's granted then invoke the file picker
-  Future<void> _checkPermissions() async {
+  Future<void> _checkLocationPermissions() async {
     final hasLocationPermissions =
-        await _permissionModel.requestLocationPermission();
+        await PermissionModel().requestLocationPermission();
     debugPrint('Location permission: $hasLocationPermissions');
+  }
+
+  /// Check if ble scan permission is granted,
+  /// if it's not granted then request it.
+  /// If it's granted then invoke the file picker
+  Future<void> _checkBluetoothScanPermissions() async {
+    final hasBleScanPermissions =
+        await PermissionModel().requestBluetoothScanPermission();
+    debugPrint('Location permission: $hasBleScanPermissions');
   }
 
   /// Leave permission screen and go to home screen
@@ -118,15 +140,18 @@ class _PermissionScreenState extends State<PermissionScreen>
 class LocationPermissions extends StatelessWidget {
   final bool isPermanent;
   final VoidCallback onPressed;
+  final bool checkBluetooth;
 
   const LocationPermissions({
     Key? key,
     required this.isPermanent,
     required this.onPressed,
+    this.checkBluetooth = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final service = checkBluetooth ? 'Bluetooth' : 'Location';
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -138,7 +163,7 @@ class LocationPermissions extends StatelessWidget {
               right: 16.0,
             ),
             child: Text(
-              'Location service permission',
+              '$service service permission',
               style: Theme.of(context).textTheme.titleLarge,
             ),
           ),
@@ -148,9 +173,9 @@ class LocationPermissions extends StatelessWidget {
               top: 24.0,
               right: 16.0,
             ),
-            child: const Text(
+            child: Text(
               'We need to request your permission for '
-              'location service in order to use the app.',
+              '$service service in order to use the app.',
               textAlign: TextAlign.center,
             ),
           ),
@@ -184,8 +209,6 @@ class LocationPermissions extends StatelessWidget {
   }
 }
 
-/// This widget is simply the button to select
-/// the image from the local file system.
 class StartButton extends StatelessWidget {
   final VoidCallback? onPressed;
 
