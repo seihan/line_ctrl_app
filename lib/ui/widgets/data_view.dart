@@ -24,7 +24,7 @@ class DataView extends StatelessWidget {
       builder: (c, snapshot) {
         if (snapshot.hasData) {
           double x = snapshot.data?.x ?? 0;
-          x = Utils.reScale(
+          x = Utils.scale(
             value: x,
             inMin: -255,
             inMax: 255,
@@ -34,13 +34,6 @@ class DataView extends StatelessWidget {
           double y = snapshot.data?.y ?? 0;
           return Column(
             children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('x: ${x.toStringAsFixed(0)}\t'),
-                  Text('y: ${y.toStringAsFixed(0)}'),
-                ],
-              ),
               // horizontal bar
               y < 0
                   ? Row(

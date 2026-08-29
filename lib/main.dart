@@ -34,8 +34,8 @@ class LineCtrlApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => SensorController(),
+        ChangeNotifierProvider<SensorModel>(
+          create: (_) => SensorModel(),
         ),
         ChangeNotifierProvider<PermissionModel>(
           create: (_) => PermissionModel(),
@@ -50,11 +50,7 @@ class LineCtrlApp extends StatelessWidget {
       child: MaterialApp(
         navigatorKey: AppDialogs.navigatorKey,
         theme: ThemeData.dark(),
-        home: Consumer<PermissionModel>(
-          builder: (context, permissionModel, child) {
-            return const HomeScreen();
-          },
-        ),
+        home: const HomeScreen(),
       ),
     );
   }

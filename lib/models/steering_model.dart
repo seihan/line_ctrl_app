@@ -9,14 +9,18 @@ import '../enums/controller_type.dart';
 import '../utils.dart';
 
 class SteeringModel extends ChangeNotifier {
+  final BluetoothConnectionModel connectionModel;
+
+  SteeringModel({required this.connectionModel});
+
   static const int upperLimit = 15;
   static const int lowerLimit = -15;
   DateTime? _lastSampleTime;
   static const _samplingInterval = Duration(milliseconds: 80);
-  final BluetoothConnectionModel connectionModel;
   StreamSubscription? _sensorStreamSubscription;
-  late SensorController? _sensorController;
+  late SensorModel? _sensorController;
   bool _paused = true;
+  bool _showSettings = false;
   int _leftValue = 0;
   bool _activeLeft = false;
   bool _activeRight = false;
@@ -25,6 +29,7 @@ class SteeringModel extends ChangeNotifier {
   int _powerValue = 0;
 
   bool get paused => _paused;
+  bool get showSettings => _showSettings;
   int get leftValue => _leftValue;
   int get rightValue => _rightValue;
   int get powerValue => _powerValue;
@@ -32,10 +37,17 @@ class SteeringModel extends ChangeNotifier {
   bool get activeRight => _activeRight;
   bool get activePower => _activePower;
 
-  SteeringModel({required this.connectionModel});
+  set showSettings(bool value) {
+    if (value != _showSettings) {
+      _showSettings = value;
+      notifyListeners();
+    }
+  }
+
+  void onPressedSettingsButton() => showSettings = !showSettings;
 
   void _initSensorController() {
-    _sensorController = SensorController();
+    _sensorController = SensorModel();
     _sensorStreamSubscription =
         _sensorController?.vector2.listen(_handleSensorData);
   }

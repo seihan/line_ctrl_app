@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:line_ctrl_app/ui/widgets/accelerometer_bars.dart';
 import 'package:line_ctrl_app/ui/widgets/control_slider.dart';
 import 'package:line_ctrl_app/ui/widgets/notify_button.dart';
+import 'package:line_ctrl_app/ui/widgets/settings_button.dart';
+import 'package:line_ctrl_app/ui/widgets/settings_widget.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/bluetooth_connection_model.dart';
@@ -18,9 +20,9 @@ class SteeringScreen extends StatelessWidget {
     return ChangeNotifierProvider<SteeringModel>(
       create: (_) => SteeringModel(connectionModel: connectionModel),
       child: Consumer<SteeringModel>(
-        builder: (context, steering, child) {
+        builder: (context, model, child) {
           return Scaffold(
-            backgroundColor: Colors.transparent,
+            backgroundColor: Colors.black, //Colors.transparent,
             body: SafeArea(
               child: Stack(
                 children: <Widget>[
@@ -29,53 +31,66 @@ class SteeringScreen extends StatelessWidget {
                     alignment: Alignment.topCenter,
                     child: VescDataDisplay(),
                   ),
+                  Align(
+                    alignment: Alignment.bottomLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 20,
+                      ),
+                      child: Icon(
+                        connectionModel.connected
+                            ? Icons.sensors_sharp
+                            : Icons.sensors_off,
+                        color: connectionModel.connected
+                            ? Colors.blue
+                            : Colors.white54,
+                      ),
+                    ),
+                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ControlSlider(
                         title: 'Left',
-                        value: steering.leftValue.toDouble(),
-                        active: steering.activeLeft,
-                        onChanged: steering.onChangedLeft,
-                        onPressed: steering.toggleLeft,
+                        value: model.leftValue.toDouble(),
+                        active: model.activeLeft,
+                        onChanged: model.onChangedLeft,
+                        onPressed: model.toggleLeft,
                       ),
                       ControlSlider(
                         title: 'Power',
-                        value: steering.powerValue.toDouble(),
-                        active: steering.activePower,
-                        onChanged: steering.onChangedPower,
-                        onPressed: steering.togglePower,
+                        value: model.powerValue.toDouble(),
+                        active: model.activePower,
+                        onChanged: model.onChangedPower,
+                        onPressed: model.togglePower,
                       ),
                       ControlSlider(
                         title: 'Right',
-                        value: steering.rightValue.toDouble(),
-                        active: steering.activeRight,
-                        onChanged: steering.onChangedRight,
-                        onPressed: steering.toggleRight,
+                        value: model.rightValue.toDouble(),
+                        active: model.activeRight,
+                        onChanged: model.onChangedRight,
+                        onPressed: model.toggleRight,
                       ),
                     ],
                   ),
+                  if (model.showSettings) const SettingsWidget(),
                   const Align(
-                    alignment: Alignment.topRight,
-                    child: NotifyButton(),
-                  ),
-                  if (connectionModel.connected == false)
-                    Container(
-                      color: Colors.black.withAlpha(80),
-                      child: const Center(
-                        child: Icon(
-                          Icons.mobiledata_off_sharp,
-                          size: 200.0,
-                          color: Colors.white54,
-                        ),
-                      ),
+                    alignment: Alignment.topCenter,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        SettingsButton(),
+                        NotifyButton(),
+                      ],
                     ),
+                  ),
                 ],
               ),
             ),
             floatingActionButton: FloatingActionButton(
               onPressed: connectionModel.connected
-                  ? steering.togglePause
+                  ? model.togglePause
                   : connectionModel.isScanning
                       ? null
                       : connectionModel.startScan,
@@ -83,7 +98,7 @@ class SteeringScreen extends StatelessWidget {
                   connectionModel.isScanning ? Colors.red : Colors.green,
               child: Icon(
                 connectionModel.connected
-                    ? steering.paused
+                    ? model.paused
                         ? Icons.play_arrow
                         : Icons.pause
                     : connectionModel.isScanning

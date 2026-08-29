@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 class Utils {
   /// A mapping function to map values from one range into another
-  static double reScale({
+  static double scale({
     required double value,
     required double inMin,
     required double inMax,

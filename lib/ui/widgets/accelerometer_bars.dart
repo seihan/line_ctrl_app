@@ -9,7 +9,7 @@ class AccelerometerBars extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<SensorController>(
+    return Consumer<SensorModel>(
       builder: (context, model, child) {
         return DataView(
           stream: model.vector2Ui,
