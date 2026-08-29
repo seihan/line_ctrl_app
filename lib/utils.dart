@@ -17,7 +17,7 @@ class Utils {
     return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
   }
 
-  /// Returns the 0 if the [min] or [max] constrain is reached
+  /// Creates a zero zone when the value is within the constrains
   static int deadZone({
     int value = 0,
     int min = 0,

@@ -15,9 +15,3 @@ class BluetoothNotificationHandler {
 
   bool get isNotifying => notifyChar?.isNotifying ?? false;
 }
-
-class BluetoothWriteHandler {
-  final BluetoothCharacteristic? characteristic;
-
-  BluetoothWriteHandler({this.characteristic});
-}

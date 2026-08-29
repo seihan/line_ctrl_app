@@ -29,7 +29,10 @@ class SteeringScreen extends StatelessWidget {
                   const AccelerometerBars(),
                   const Align(
                     alignment: Alignment.topCenter,
-                    child: VescDataDisplay(),
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 44),
+                      child: VescDataDisplay(),
+                    ),
                   ),
                   Align(
                     alignment: Alignment.bottomLeft,

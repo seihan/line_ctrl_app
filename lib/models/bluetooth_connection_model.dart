@@ -39,6 +39,7 @@ class BluetoothConnectionModel extends ChangeNotifier {
   BluetoothCharacteristic? _steeringChar;
 
   bool _connected = false;
+  bool _wasConnected = false;
   bool _isNotifying = false;
   bool _isScanning = false;
   bool _timerIsRunnig = false;
@@ -46,6 +47,18 @@ class BluetoothConnectionModel extends ChangeNotifier {
   bool get connected => _connected;
   bool get isNotifying => _isNotifying;
   bool get isScanning => _isScanning;
+
+  set isNotifying(bool value) {
+    if (value != _isNotifying) {
+      _isNotifying = value;
+    }
+  }
+
+  set connected(bool value) {
+    if (value != _connected) {
+      _connected = value;
+    }
+  }
 
   Stream<List<int>>? get notifyStream => _powerRxChar?.lastValueStream;
   Stream<String> get log => _logStream.stream;
@@ -168,19 +181,18 @@ class BluetoothConnectionModel extends ChangeNotifier {
     final BluetoothNotificationHandler notificationHandler =
         BluetoothNotificationHandler(
       notifyChar: _powerRxChar,
-      setNotify: _isNotifying,
+      setNotify: true,
     );
     notificationHandler.startNotifications()?.listen(_handleNotifyValues);
-    _logStream.add('is notifying; ${notificationHandler.isNotifying}');
-    debugPrint('is notifying; ${notificationHandler.isNotifying}');
     notifyListeners();
   }
 
   void _listenConnections(List<BluetoothDevice> event) {
     bool hasConnections = event.isNotEmpty;
-    if (_connected != hasConnections) {
-      _connected = hasConnections;
-      _subscribeNotify();
+    connected = hasConnections;
+    if (hasConnections != _wasConnected) {
+      _wasConnected = hasConnections;
+      Future.delayed(const Duration(seconds: 1), () => _subscribeNotify());
     }
   }
 
@@ -191,6 +203,7 @@ class BluetoothConnectionModel extends ChangeNotifier {
       debugPrint('disconnected');
       _logStream.add('disconnected');
       _connected = false;
+      isNotifying = false;
       notifyListeners();
       try {
         debugPrint('connecting');
@@ -273,9 +286,18 @@ class BluetoothConnectionModel extends ChangeNotifier {
 
   void _handleNotifyValues(List<int> values) {
     if (values.isNotEmpty) {
+      if (!isNotifying) {
+        isNotifying = true;
+        notifyListeners();
+      }
+      _logStream.add('is notifying; $isNotifying');
+      debugPrint('is notifying; $isNotifying');
       debugPrint(values.toString());
       VescStateModel().update(values);
       debugPrint('notify values: ${VescStateModel().toString()}');
+    } else {
+      isNotifying = false;
+      notifyListeners();
     }
   }
 

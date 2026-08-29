@@ -14,10 +14,11 @@ enum PermissionSection {
 
 class PermissionModel extends ChangeNotifier {
   static final PermissionModel _instance = PermissionModel._internal();
-  PermissionModel._internal();
   factory PermissionModel() {
     return _instance;
   }
+  // constructor
+  PermissionModel._internal();
   PermissionSection _permissionSection = PermissionSection.unknown;
 
   bool _locationPermissionGranted = false;

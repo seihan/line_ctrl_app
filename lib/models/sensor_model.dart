@@ -7,64 +7,56 @@ import 'package:vector_math/vector_math.dart';
 import '../utils.dart';
 
 class SensorModel extends ChangeNotifier {
+  static final SensorModel _instance = SensorModel._internal();
+  factory SensorModel() {
+    return _instance;
+  }
+// constructor
+  SensorModel._internal();
+
   // limiter 0 .. 1
-  double _xFactorLeft = 1;
-  double _xFactorRight = 1;
-  double _yFactorBrake = 1;
-  double _yFactorThrottle = 1;
+  double _xFactorBrake = 1;
+  double _xFactorThrottle = 1;
+  double _yFactorLeft = 1;
+  double _yFactorRight = 1;
 
-  double get xFactorLeft => _xFactorLeft;
-  double get xFactorRight => _xFactorRight;
-  double get yFactorBrake => _yFactorBrake;
-  double get yFactorThrottle => _yFactorThrottle;
+  double get xFactorBrake => _xFactorBrake;
+  double get xFactorThrottle => _xFactorThrottle;
+  double get yFactorLeft => _yFactorLeft;
+  double get yFactorRight => _yFactorRight;
 
-  set xFactorLeft(double value) {
-    if (value != _xFactorLeft) {
-      _xFactorLeft = value;
+  set xFactorBrake(double value) {
+    if (value != _xFactorBrake) {
+      _xFactorBrake = value;
+      notifyListeners();
     }
   }
 
-  set xFactorRight(double value) {
-    if (value != _xFactorRight) {
-      _xFactorRight = value;
+  set xFactorThrottle(double value) {
+    if (value != _xFactorThrottle) {
+      _xFactorThrottle = value;
+      notifyListeners();
     }
   }
 
-  set yFactorBrake(double value) {
-    if (value != _yFactorBrake) {
-      _yFactorBrake = value;
+  set yFactorLeft(double value) {
+    if (value != _yFactorLeft) {
+      _yFactorLeft = value;
+      notifyListeners();
     }
   }
 
-  set yFactorThrottle(double value) {
-    if (value != _yFactorThrottle) {
-      _yFactorThrottle = value;
+  set yFactorRight(double value) {
+    if (value != _yFactorRight) {
+      _yFactorRight = value;
+      notifyListeners();
     }
   }
 
-  double onChangedXfactorLeft(double value) {
-    xFactorLeft = value;
-    notifyListeners();
-    return xFactorLeft;
-  }
-
-  double onChangedXfactorRight(double value) {
-    xFactorRight = value;
-    notifyListeners();
-    return xFactorRight;
-  }
-
-  double onChangedYfactorBrake(double value) {
-    yFactorBrake = value;
-    notifyListeners();
-    return yFactorBrake;
-  }
-
-  double onChangedYfactorThrottle(double value) {
-    yFactorThrottle = value;
-    notifyListeners();
-    return yFactorThrottle;
-  }
+  double onChangedXfactorBrake(double value) => xFactorBrake = value;
+  double onChangedXfactorThrottle(double value) => xFactorThrottle = value;
+  double onChangedYfactorLeft(double value) => yFactorLeft = value;
+  double onChangedYfactorRight(double value) => yFactorRight = value;
 
   Vector2 _vector2 = Vector2.zero();
 
@@ -97,15 +89,15 @@ class SensorModel extends ChangeNotifier {
       value: _vector2.x,
       inMin: -10,
       inMax: 10,
-      outMin: -255 * xFactorLeft,
-      outMax: 255 * xFactorRight,
+      outMin: -255 * xFactorBrake,
+      outMax: 255 * xFactorThrottle,
     );
     _vector2.y = Utils.scale(
       value: _vector2.y,
       inMin: -10,
       inMax: 10,
-      outMin: -255 * yFactorBrake,
-      outMax: 255 * yFactorThrottle,
+      outMin: -255 * yFactorLeft,
+      outMax: 255 * yFactorRight,
     );
     sink.add(_vector2);
   }

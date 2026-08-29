@@ -18,7 +18,6 @@ class SteeringModel extends ChangeNotifier {
   DateTime? _lastSampleTime;
   static const _samplingInterval = Duration(milliseconds: 80);
   StreamSubscription? _sensorStreamSubscription;
-  late SensorModel? _sensorController;
   bool _paused = true;
   bool _showSettings = false;
   int _leftValue = 0;
@@ -47,9 +46,8 @@ class SteeringModel extends ChangeNotifier {
   void onPressedSettingsButton() => showSettings = !showSettings;
 
   void _initSensorController() {
-    _sensorController = SensorModel();
-    _sensorStreamSubscription =
-        _sensorController?.vector2.listen(_handleSensorData);
+    _sensorStreamSubscription?.cancel();
+    _sensorStreamSubscription = SensorModel().vector2.listen(_handleSensorData);
   }
 
   void _handleSensorData(Vector2 vector2) async {
@@ -63,7 +61,7 @@ class SteeringModel extends ChangeNotifier {
           int steeringValue = Utils.deadZone(
             min: -15,
             max: 15,
-            value: vector2.y.toInt(),
+            value: vector2.y.toInt(), // single value for both motors
             // negative -> left
             // positive -> right
           );
@@ -85,10 +83,10 @@ class SteeringModel extends ChangeNotifier {
     }
   }
 
-  void togglePause() async {
+  void togglePause() {
     _paused = !_paused;
     if (_paused) {
-      await _sensorStreamSubscription?.cancel();
+      _sensorStreamSubscription?.cancel();
       _stop();
     } else {
       _initSensorController();

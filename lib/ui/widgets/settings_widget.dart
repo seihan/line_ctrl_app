@@ -20,24 +20,24 @@ class SettingsWidget extends StatelessWidget {
                 child: Text('Settings'),
               ),
               SettingsSlider(
-                title: 'Left Motor Level',
-                value: model.xFactorLeft,
-                onChanged: model.onChangedXfactorLeft,
-              ),
-              SettingsSlider(
-                title: 'Right Motor Level',
-                value: model.xFactorRight,
-                onChanged: model.onChangedXfactorRight,
-              ),
-              SettingsSlider(
                 title: 'Brake Level',
-                value: model.yFactorBrake,
-                onChanged: model.onChangedYfactorBrake,
+                value: model.xFactorBrake,
+                onChanged: model.onChangedXfactorBrake,
               ),
               SettingsSlider(
                 title: 'Throttle Level',
-                value: model.yFactorThrottle,
-                onChanged: model.onChangedYfactorThrottle,
+                value: model.xFactorThrottle,
+                onChanged: model.onChangedXfactorThrottle,
+              ),
+              SettingsSlider(
+                title: 'Motor Forward Level',
+                value: model.yFactorLeft,
+                onChanged: model.onChangedYfactorLeft,
+              ),
+              SettingsSlider(
+                title: 'Motor Backward Level',
+                value: model.yFactorRight,
+                onChanged: model.onChangedYfactorRight,
               ),
             ],
           ),
