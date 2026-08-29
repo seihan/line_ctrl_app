@@ -9,11 +9,8 @@ class NotifyButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<BluetoothConnectionModel>(
       builder: (context, model, child) {
-        return IconButton(
-          onPressed: model.toggleNotify,
-          icon: const Icon(
-            Icons.podcasts,
-          ),
+        return Icon(
+          Icons.podcasts,
           color: model.isNotifying ? Colors.blue : Colors.grey,
         );
       },

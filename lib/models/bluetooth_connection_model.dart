@@ -163,11 +163,8 @@ class BluetoothConnectionModel extends ChangeNotifier {
     );
   }
 
-  Future<void> toggleNotify() async {
-    _isNotifying = !_isNotifying;
-    if (!_isNotifying) {
-      _notifyStreamSubscription?.cancel();
-    }
+  Future<void> _subscribeNotify() async {
+    _notifyStreamSubscription?.cancel();
     final BluetoothNotificationHandler notificationHandler =
         BluetoothNotificationHandler(
       notifyChar: _powerRxChar,
@@ -183,6 +180,7 @@ class BluetoothConnectionModel extends ChangeNotifier {
     bool hasConnections = event.isNotEmpty;
     if (_connected != hasConnections) {
       _connected = hasConnections;
+      _subscribeNotify();
     }
   }
 
