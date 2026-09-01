@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:line_ctrl_app/enums/steering_display_mode.dart';
 import 'package:line_ctrl_app/ui/widgets/accelerometer_bars.dart';
-import 'package:line_ctrl_app/ui/widgets/control_slider.dart';
-import 'package:line_ctrl_app/ui/widgets/notify_button.dart';
+import 'package:line_ctrl_app/ui/widgets/connection_indicator.dart';
+import 'package:line_ctrl_app/ui/widgets/control_slider_widget.dart';
+import 'package:line_ctrl_app/ui/widgets/gamepad_widget.dart';
+import 'package:line_ctrl_app/ui/widgets/notify_indicator.dart';
+import 'package:line_ctrl_app/ui/widgets/overlay_switch.dart';
 import 'package:line_ctrl_app/ui/widgets/settings_button.dart';
 import 'package:line_ctrl_app/ui/widgets/settings_widget.dart';
 import 'package:provider/provider.dart';
@@ -21,6 +25,23 @@ class SteeringScreen extends StatelessWidget {
       create: (_) => SteeringModel(connectionModel: connectionModel),
       child: Consumer<SteeringModel>(
         builder: (context, model, child) {
+          Widget mainWidget;
+
+          switch (model.displayMode) {
+            case SteeringDisplayMode.controller:
+              mainWidget = ControlSliderWidget(
+                model: model,
+              ); // or your Controller widget
+              break;
+            case SteeringDisplayMode.gamepad:
+              mainWidget = GamepadWidget(
+                model: model,
+              );
+              break;
+            case SteeringDisplayMode.settings:
+              mainWidget = const SettingsWidget();
+              break;
+          }
           return Scaffold(
             backgroundColor: Colors.black, //Colors.transparent,
             body: SafeArea(
@@ -34,57 +55,31 @@ class SteeringScreen extends StatelessWidget {
                       child: VescDataDisplay(),
                     ),
                   ),
-                  Align(
-                    alignment: Alignment.bottomLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 20,
-                      ),
-                      child: Icon(
-                        connectionModel.connected
-                            ? Icons.sensors_sharp
-                            : Icons.sensors_off,
-                        color: connectionModel.connected
-                            ? Colors.blue
-                            : Colors.white54,
+                  Positioned.fill(child: mainWidget),
+                  if (model.displayMode != SteeringDisplayMode.settings)
+                    Align(
+                      alignment: Alignment.bottomLeft,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 12,
+                        ),
+                        child: OverlaySwitch(model: model),
                       ),
                     ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ControlSlider(
-                        title: 'Left',
-                        value: model.leftValue.toDouble(),
-                        active: model.activeLeft,
-                        onChanged: model.onChangedLeft,
-                        onPressed: model.toggleLeft,
-                      ),
-                      ControlSlider(
-                        title: 'Power',
-                        value: model.powerValue.toDouble(),
-                        active: model.activePower,
-                        onChanged: model.onChangedPower,
-                        onPressed: model.togglePower,
-                      ),
-                      ControlSlider(
-                        title: 'Right',
-                        value: model.rightValue.toDouble(),
-                        active: model.activeRight,
-                        onChanged: model.onChangedRight,
-                        onPressed: model.toggleRight,
-                      ),
-                    ],
-                  ),
-                  if (model.showSettings) const SettingsWidget(),
-                  const Align(
+                  Align(
                     alignment: Alignment.topCenter,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        SettingsButton(),
-                        NotifyButton(),
+                        const SettingsButton(),
+                        Row(
+                          children: [
+                            ConnectionIndicator(model: connectionModel),
+                            const SizedBox(width: 8),
+                            NotifyIndicator(model: connectionModel),
+                          ],
+                        ),
                       ],
                     ),
                   ),

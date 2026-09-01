@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
+import 'package:line_ctrl_app/enums/steering_display_mode.dart';
 import 'package:line_ctrl_app/models/bluetooth_connection_model.dart';
 import 'package:line_ctrl_app/models/sensor_model.dart';
 import 'package:vector_math/vector_math.dart';
@@ -20,6 +21,7 @@ class SteeringModel extends ChangeNotifier {
   StreamSubscription? _sensorStreamSubscription;
   bool _paused = true;
   bool _showSettings = false;
+  bool _showGamepad = false;
   int _leftValue = 0;
   bool _activeLeft = false;
   bool _activeRight = false;
@@ -29,12 +31,25 @@ class SteeringModel extends ChangeNotifier {
 
   bool get paused => _paused;
   bool get showSettings => _showSettings;
+  bool get showGamepad => _showGamepad;
   int get leftValue => _leftValue;
   int get rightValue => _rightValue;
   int get powerValue => _powerValue;
   bool get activeLeft => _activeLeft;
   bool get activeRight => _activeRight;
   bool get activePower => _activePower;
+
+  SteeringDisplayMode _displayMode = SteeringDisplayMode.controller;
+  SteeringDisplayMode _lastDisplayMode = SteeringDisplayMode.controller;
+
+  SteeringDisplayMode get displayMode => _displayMode;
+
+  set displayMode(SteeringDisplayMode value) {
+    if (value != _displayMode) {
+      _displayMode = value;
+      notifyListeners();
+    }
+  }
 
   set showSettings(bool value) {
     if (value != _showSettings) {
@@ -43,7 +58,33 @@ class SteeringModel extends ChangeNotifier {
     }
   }
 
-  void onPressedSettingsButton() => showSettings = !showSettings;
+  set showGamepad(bool value) {
+    if (value != _showGamepad) {
+      _showGamepad = value;
+      notifyListeners();
+    }
+  }
+
+  void onPressedSettingsButton() {
+    showSettings = !showSettings;
+    if (showSettings) {
+      displayMode = SteeringDisplayMode.settings;
+    } else {
+      displayMode = _lastDisplayMode;
+    }
+  }
+
+  void onOverlaySwitchChanged(bool value) {
+    if (value) {
+      showGamepad = true;
+      displayMode = SteeringDisplayMode.gamepad;
+      _lastDisplayMode = SteeringDisplayMode.gamepad;
+    } else {
+      showGamepad = false;
+      displayMode = SteeringDisplayMode.controller;
+      _lastDisplayMode = SteeringDisplayMode.controller;
+    }
+  }
 
   void _initSensorController() {
     _sensorStreamSubscription?.cancel();

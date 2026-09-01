@@ -12,7 +12,6 @@ class SettingsWidget extends StatelessWidget {
       builder: (context, model, child) {
         return Container(
           padding: const EdgeInsets.only(bottom: 20.0),
-          color: Colors.black87,
           child: Row(
             children: [
               const Padding(
