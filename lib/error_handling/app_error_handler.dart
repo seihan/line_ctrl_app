@@ -14,6 +14,14 @@ class AppErrorHandler {
     _streamController.add(errorMessage);
   }
 
+  static void handleFlutterErrorDetails(FlutterErrorDetails details) {
+    final String errorMessage = 'Flutter: $details.error';
+    // Handle the Flutter error here
+    debugPrint('Flutter error: $details.error');
+    debugPrint('Stack trace:\n$details.stackTrace');
+    _streamController.add(errorMessage);
+  }
+
   static void handlePlatformError(Object error, StackTrace stackTrace) {
     final String errorMessage = 'Platform error: $error';
     // Handle the platform error here

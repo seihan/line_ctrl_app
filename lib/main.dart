@@ -12,19 +12,15 @@ import 'error_handling/app_error_handler.dart';
 import 'models/bluetooth_connection_model.dart';
 
 void main() {
-  FlutterError.onError = (FlutterErrorDetails details) {
-    AppErrorHandler.handleFlutterError(
-      details.exception,
-      details.stack,
-    );
-  };
-  runZonedGuarded(() {
-    runApp(
-      const LineCtrlApp(),
-    );
-  }, (error, stackTrace) {
-    AppErrorHandler.handlePlatformError(error, stackTrace);
-  });
+  FlutterError.onError = AppErrorHandler.handleFlutterErrorDetails;
+  runZonedGuarded(
+    () {
+      runApp(
+        const LineCtrlApp(),
+      );
+    },
+    AppErrorHandler.handlePlatformError,
+  );
 }
 
 class LineCtrlApp extends StatelessWidget {
