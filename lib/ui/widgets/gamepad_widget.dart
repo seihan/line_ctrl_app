@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:line_ctrl_app/models/steering_model.dart';
+import 'package:line_ctrl_app/ui/widgets/spring_button.dart';
 
 class GamepadWidget extends StatelessWidget {
   final SteeringModel model;
@@ -16,31 +17,53 @@ class GamepadWidget extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Container(
+        SizedBox(
           height: screenHeight * outerButtonsHeightScale,
           width: screenWidth * outerButtonsWidthScale,
-          color: Colors.grey,
+          child: SpringButton(onValueChanged: model.onLeftValueChanged),
         ),
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
+            SizedBox(
               height: screenHeight * centerButtonsHeightScale,
               width: screenWidth * centerButtonsWidthScale,
-              color: Colors.green,
+              child: ElevatedButton(
+                onPressed: () => model.onPowerValueChanged(1),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(
+                      8.0,
+                    ), // Adjust the radius as needed
+                  ),
+                ),
+                child: const Text('Throttle'),
+              ),
             ),
-            const SizedBox(height: 10),
-            Container(
+            const SizedBox(height: 20),
+            SizedBox(
               height: screenHeight * centerButtonsHeightScale,
               width: screenWidth * centerButtonsWidthScale,
-              color: Colors.blue,
+              child: ElevatedButton(
+                onPressed: () => model.onPowerValueChanged(-1),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(
+                      8.0,
+                    ), // Adjust the radius as needed
+                  ),
+                ),
+                child: const Text('Brake'),
+              ),
             ),
           ],
         ),
-        Container(
+        SizedBox(
           height: screenHeight * outerButtonsHeightScale,
           width: screenWidth * outerButtonsWidthScale,
-          color: Colors.grey,
+          child: SpringButton(onValueChanged: model.onRightValueChanged),
         ),
       ],
     );

@@ -82,7 +82,7 @@ class VescDataDisplay extends StatelessWidget {
                   'Steering Right Speed: ${vescState.steeringRightSpeed}',
                 ),
               ],
-            )
+            ),
           ],
         );
       },

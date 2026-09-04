@@ -28,6 +28,8 @@ class SteeringModel extends ChangeNotifier {
   bool _activePower = false;
   int _rightValue = 0;
   int _powerValue = 0;
+  bool _steerLeft = false;
+  bool _steerRight = false;
 
   bool get paused => _paused;
   bool get showSettings => _showSettings;
@@ -38,6 +40,27 @@ class SteeringModel extends ChangeNotifier {
   bool get activeLeft => _activeLeft;
   bool get activeRight => _activeRight;
   bool get activePower => _activePower;
+
+  set leftValue(int value) {
+    if (value != _leftValue) {
+      _leftValue = value;
+      notifyListeners();
+    }
+  }
+
+  set rightValue(int value) {
+    if (value != _rightValue) {
+      _rightValue = value;
+      notifyListeners();
+    }
+  }
+
+  set powerValue(int value) {
+    if (value != _powerValue) {
+      _powerValue = value;
+      notifyListeners();
+    }
+  }
 
   SteeringDisplayMode _displayMode = SteeringDisplayMode.controller;
   SteeringDisplayMode _lastDisplayMode = SteeringDisplayMode.controller;
@@ -84,6 +107,67 @@ class SteeringModel extends ChangeNotifier {
       displayMode = SteeringDisplayMode.controller;
       _lastDisplayMode = SteeringDisplayMode.controller;
     }
+  }
+
+  void onLeftValueChanged(double value) {
+    final factor = SensorModel().yFactorLeft;
+    leftValue = _scaleNormalizedValue(value, factor: factor) * -1;
+    _steerLeft = true;
+    _steerRight = false;
+    _writeSteering();
+  }
+
+  void onRightValueChanged(double value) {
+    final factor = SensorModel().yFactorRight;
+    rightValue = _scaleNormalizedValue(value, factor: factor);
+    _steerRight = true;
+    _steerLeft = false;
+    _writeSteering();
+  }
+
+  void onPowerValueChanged(double value) {
+    double factor = 1;
+    final isNegative = value < 0;
+    isNegative
+        ? factor = SensorModel().xFactorBrake
+        : SensorModel().xFactorThrottle;
+    final scaledValue = _scaleNormalizedValue(value.abs(), factor: factor);
+    // Add the sign again
+    powerValue = isNegative ? scaledValue * -1 : scaledValue;
+    _writeSteering();
+  }
+
+  int _scaleNormalizedValue(double value, {double factor = 1}) {
+    return Utils.scale(
+      value: value,
+      inMin: 0,
+      inMax: 1,
+      outMin: 0,
+      outMax: 255 * factor,
+    ).toInt();
+  }
+
+  void _writeSteering() async {
+    if (connectionModel.connected == false) {
+      return;
+    }
+    int steering = 0;
+    steering = Utils.deadZone(
+      min: -15,
+      max: 15,
+      value: _steerLeft
+          ? leftValue
+          : _steerRight
+              ? rightValue
+              : 0,
+    );
+    final power = Utils.deadZone(
+      min: -15,
+      max: 15,
+      value: powerValue,
+    );
+    final msg = Utils.concatSignedInt16Values(steering, power);
+    await connectionModel.writeSteering(msg);
   }
 
   void _initSensorController() {
