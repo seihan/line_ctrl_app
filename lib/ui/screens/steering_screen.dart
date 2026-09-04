@@ -86,24 +86,26 @@ class SteeringScreen extends StatelessWidget {
                 ],
               ),
             ),
-            floatingActionButton: FloatingActionButton(
-              onPressed: connectionModel.connected
-                  ? model.togglePause
-                  : connectionModel.isScanning
-                      ? null
-                      : connectionModel.startScan,
-              backgroundColor:
-                  connectionModel.isScanning ? Colors.red : Colors.green,
-              child: Icon(
-                connectionModel.connected
-                    ? model.paused
-                        ? Icons.play_arrow
-                        : Icons.pause
-                    : connectionModel.isScanning
-                        ? Icons.stop
-                        : Icons.search,
-              ),
-            ),
+            floatingActionButton: model.showGamepad
+                ? null
+                : FloatingActionButton(
+                    onPressed: connectionModel.connected
+                        ? model.togglePause
+                        : connectionModel.isScanning
+                            ? null
+                            : connectionModel.startScan,
+                    backgroundColor:
+                        connectionModel.isScanning ? Colors.red : Colors.green,
+                    child: Icon(
+                      connectionModel.connected
+                          ? model.paused
+                              ? Icons.play_arrow
+                              : Icons.pause
+                          : connectionModel.isScanning
+                              ? Icons.stop
+                              : Icons.search,
+                    ),
+                  ),
           );
         },
       ),
