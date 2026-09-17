@@ -1,6 +1,17 @@
 name: Flutter CI with Release
 
 on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+        type: choice
+        options:
+          - info
+          - warning
+          - error
   push:
     tags:
       - 'v*'  # Trigger on tags like v1.0, v2.0 etc.
@@ -8,7 +19,6 @@ on:
   # push:
   #   branches:
   #     - main
-
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
