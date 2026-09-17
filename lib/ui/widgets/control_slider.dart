@@ -99,8 +99,6 @@ class ControlSlider extends StatelessWidget {
           child: Switch(
             value: active,
             onChanged: onPressed,
-            activeThumbColor: Colors.white,
-            activeTrackColor: Colors.white,
           ),
         ),
       ],

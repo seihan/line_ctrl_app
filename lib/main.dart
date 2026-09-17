@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:line_ctrl_app/models/permission_model.dart';
-import 'package:line_ctrl_app/models/sensor_model.dart';
+import 'package:line_ctrl_app/models/settings_model.dart';
 import 'package:line_ctrl_app/models/vesc_state_model.dart';
 import 'package:line_ctrl_app/ui/screens/home.dart';
 import 'package:line_ctrl_app/ui/widgets/dialogs.dart';
@@ -30,8 +30,8 @@ class LineCtrlApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<SensorModel>(
-          create: (_) => SensorModel(),
+        ChangeNotifierProvider<SettingsModel>(
+          create: (_) => SettingsModel(),
         ),
         ChangeNotifierProvider<PermissionModel>(
           create: (_) => PermissionModel(),

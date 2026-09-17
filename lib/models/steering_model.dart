@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:line_ctrl_app/enums/steering_display_mode.dart';
 import 'package:line_ctrl_app/models/bluetooth_connection_model.dart';
 import 'package:line_ctrl_app/models/sensor_model.dart';
+import 'package:line_ctrl_app/models/settings_model.dart';
 import 'package:vector_math/vector_math.dart';
 
 import '../enums/controller_type.dart';
@@ -110,7 +111,7 @@ class SteeringModel extends ChangeNotifier {
   }
 
   void onLeftValueChanged(double value) {
-    final factor = SensorModel().yFactorLeft;
+    final factor = SettingsModel().factorLeft;
     leftValue = _scaleNormalizedValue(value, factor: factor) * -1;
     _steerLeft = true;
     _steerRight = false;
@@ -118,7 +119,7 @@ class SteeringModel extends ChangeNotifier {
   }
 
   void onRightValueChanged(double value) {
-    final factor = SensorModel().yFactorRight;
+    final factor = SettingsModel().factorRight;
     rightValue = _scaleNormalizedValue(value, factor: factor);
     _steerRight = true;
     _steerLeft = false;
@@ -129,8 +130,8 @@ class SteeringModel extends ChangeNotifier {
     double factor = 1;
     final isNegative = value < 0;
     isNegative
-        ? factor = SensorModel().xFactorBrake
-        : SensorModel().xFactorThrottle;
+        ? factor = SettingsModel().factorBrake
+        : SettingsModel().factorThrottle;
     final scaledValue = _scaleNormalizedValue(value.abs(), factor: factor);
     // Add the sign again
     powerValue = isNegative ? scaledValue * -1 : scaledValue;
@@ -151,22 +152,12 @@ class SteeringModel extends ChangeNotifier {
     if (connectionModel.connected == false) {
       return;
     }
-    int steering = 0;
-    steering = Utils.deadZone(
-      min: -15,
-      max: 15,
-      value: _steerLeft
-          ? leftValue
-          : _steerRight
-              ? rightValue
-              : 0,
-    );
-    final power = Utils.deadZone(
-      min: -15,
-      max: 15,
-      value: powerValue,
-    );
-    final msg = Utils.concatSignedInt16Values(steering, power);
+    final int steering = _steerLeft
+        ? leftValue
+        : _steerRight
+            ? rightValue
+            : 0;
+    final msg = Utils.concatSignedInt16Values(steering, powerValue);
     await connectionModel.writeSteering(msg);
   }
 
@@ -250,7 +241,7 @@ class SteeringModel extends ChangeNotifier {
 
   double onChangedLeft(double value) {
     final now = DateTime.now();
-    _leftValue = value.toInt();
+    _leftValue = (value * SettingsModel().factorLeft).toInt();
     _leftValue =
         Utils.deadZone(value: _leftValue, min: lowerLimit, max: upperLimit);
     if (_lastSampleTime == null ||
@@ -278,7 +269,7 @@ class SteeringModel extends ChangeNotifier {
 
   double onChangedRight(double value) {
     final now = DateTime.now();
-    _rightValue = value.toInt();
+    _rightValue = (value * SettingsModel().factorRight).toInt();
     _rightValue =
         Utils.deadZone(value: _rightValue, min: lowerLimit, max: upperLimit);
     if (_lastSampleTime == null ||
@@ -309,7 +300,10 @@ class SteeringModel extends ChangeNotifier {
 
   double onChangedPower(double value) {
     final now = DateTime.now();
-    _powerValue = value.toInt();
+    _powerValue = (value < 0
+            ? (value * SettingsModel().factorBrake)
+            : (value * SettingsModel().factorThrottle))
+        .toInt();
     _powerValue =
         Utils.deadZone(value: _powerValue, min: lowerLimit, max: upperLimit);
     if (_lastSampleTime == null ||

@@ -43,7 +43,7 @@ class SteeringScreen extends StatelessWidget {
               break;
           }
           return Scaffold(
-            backgroundColor: Colors.black, //Colors.transparent,
+            backgroundColor: Colors.transparent,
             body: SafeArea(
               child: Stack(
                 children: <Widget>[
@@ -60,9 +60,10 @@ class SteeringScreen extends StatelessWidget {
                     Align(
                       alignment: Alignment.bottomLeft,
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 12,
+                        padding: const EdgeInsets.only(
+                          top: 30,
+                          left: 10,
+                          bottom: 12,
                         ),
                         child: OverlaySwitch(model: model),
                       ),
@@ -86,7 +87,8 @@ class SteeringScreen extends StatelessWidget {
                 ],
               ),
             ),
-            floatingActionButton: model.showGamepad
+            floatingActionButton: (model.displayMode !=
+                    SteeringDisplayMode.controller)
                 ? null
                 : FloatingActionButton(
                     onPressed: connectionModel.connected

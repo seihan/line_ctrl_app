@@ -10,7 +10,12 @@ class OverlaySwitch extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        Text(model.showGamepad ? 'Slider' : 'Gamepad'),
+        Text(
+          model.showGamepad ? 'Slider' : 'Gamepad',
+          style: const TextStyle(
+            color: Colors.white,
+          ),
+        ),
         const SizedBox(height: 10),
         Switch(
           onChanged: model.onOverlaySwitchChanged,

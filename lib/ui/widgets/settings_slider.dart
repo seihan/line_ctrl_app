@@ -5,7 +5,6 @@ import 'package:line_ctrl_app/utils.dart';
 class SettingsSlider extends StatelessWidget {
   final double value;
   final ValueChanged<double> onChanged;
-
   final String title;
 
   const SettingsSlider({
@@ -17,28 +16,30 @@ class SettingsSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Row(
       children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 25),
-          child: Text(
-            '${(value * 100).round().toStringAsFixed(0)}%',
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 17, color: Colors.white),
-          ),
+        SizedBox(
+          width: 80,
+          child: Text(title),
         ),
         Expanded(
           child: FlutterSlider(
             values: [value],
             min: 0,
             max: 1,
-            rtl: true,
+            rtl: false,
             step: const FlutterSliderStep(step: 0.01),
             centeredOrigin: false,
             trackBar: FlutterSliderTrackBar(
-              activeTrackBarHeight: 30,
+              activeTrackBarHeight: Utils.scale(
+                value: value,
+                inMin: 0,
+                inMax: 1,
+                outMin: 1,
+                outMax: 30,
+              ),
               activeTrackBar: BoxDecoration(
-                color: Colors.black.withAlpha(
+                color: Colors.white.withAlpha(
                   Utils.scale(
                     value: value,
                     inMin: 0,
@@ -52,18 +53,19 @@ class SettingsSlider extends StatelessWidget {
                 color: Colors.white,
               ),
             ),
-            axis: Axis.vertical,
-            handlerWidth: 60,
+            axis: Axis.horizontal,
+            handlerWidth: 30,
+            handlerHeight: 60,
             handler: FlutterSliderHandler(
               decoration: const BoxDecoration(),
               child: Container(
-                height: 30,
+                height: 60,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(6),
                   color: Colors.white,
                 ),
                 padding:
-                    const EdgeInsets.symmetric(vertical: 13, horizontal: 2),
+                    const EdgeInsets.symmetric(vertical: 2, horizontal: 13),
                 child: Container(
                   color: Colors.black,
                 ),
@@ -92,8 +94,12 @@ class SettingsSlider extends StatelessWidget {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.only(top: 10),
-          child: Text(title),
+          padding: const EdgeInsets.only(left: 25),
+          child: Text(
+            '${(value * 100).round().toStringAsFixed(0)}%',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 17, color: Colors.white),
+          ),
         ),
       ],
     );

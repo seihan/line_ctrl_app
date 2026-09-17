@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:line_ctrl_app/models/sensor_model.dart';
+import 'package:line_ctrl_app/models/settings_model.dart';
 import 'package:line_ctrl_app/ui/widgets/settings_slider.dart';
 import 'package:provider/provider.dart';
 
@@ -8,35 +8,33 @@ class SettingsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<SensorModel>(
+    return Consumer<SettingsModel>(
       builder: (context, model, child) {
         return Container(
           padding: const EdgeInsets.only(bottom: 20.0),
-          child: Row(
+          color: Colors.black,
+          child: ListView(
             children: [
-              const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text('Settings'),
+              const Text('Settings'),
+              SettingsSlider(
+                title: 'Brake',
+                value: model.factorBrake,
+                onChanged: model.onChangedFactorBrake,
               ),
               SettingsSlider(
-                title: 'Brake Level',
-                value: model.xFactorBrake,
-                onChanged: model.onChangedXfactorBrake,
+                title: 'Throttle',
+                value: model.factorThrottle,
+                onChanged: model.onChangedFactorThrottle,
               ),
               SettingsSlider(
-                title: 'Throttle Level',
-                value: model.xFactorThrottle,
-                onChanged: model.onChangedXfactorThrottle,
+                title: 'Left',
+                value: model.factorLeft,
+                onChanged: model.onChangedFactorLeft,
               ),
               SettingsSlider(
-                title: 'Motor Forward Level',
-                value: model.yFactorLeft,
-                onChanged: model.onChangedYfactorLeft,
-              ),
-              SettingsSlider(
-                title: 'Motor Backward Level',
-                value: model.yFactorRight,
-                onChanged: model.onChangedYfactorRight,
+                title: 'Right',
+                value: model.factorRight,
+                onChanged: model.onChangedFactorRight,
               ),
             ],
           ),

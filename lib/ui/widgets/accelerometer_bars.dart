@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import '../../models/sensor_model.dart';
 import 'data_view.dart';
@@ -9,12 +8,8 @@ class AccelerometerBars extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<SensorModel>(
-      builder: (context, model, child) {
-        return DataView(
-          stream: model.vector2Ui,
-        );
-      },
+    return DataView(
+      stream: SensorModel().vector2Ui,
     );
   }
 }
