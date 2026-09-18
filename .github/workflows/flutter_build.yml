@@ -40,9 +40,17 @@ jobs:
 
       - name: Get APK path
         id: apk_path
-        run: echo "::set-output name=path::build/app/outputs/flutter-apk/app-release.apk"
+        run: |
+          APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
+          if [ -f "$APK_PATH" ]; then
+            echo "APK_PATH=$APK_PATH" >> $GITHUB_OUTPUT
+          else
+            echo "APK not found at $APK_PATH"
+            exit 1
+          fi
 
       - name: Create GitHub Release
+        id: create_release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
@@ -54,12 +62,20 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload APK to Release
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.apk_path.outputs.path }}
-          asset_name: app-release.apk
-          asset_content_type: application/vnd.android.package-archive
+        if: startsWith(github.ref, 'refs/tags:') && steps.create_release.outputs.upload_url != ''
+        run: |
+          if [ -f "${{ steps.apk_path.outputs.path }}" ]; then
+            echo "Uploading APK..."
+            UPLOAD_URL="${{ steps.create_release.outputs.upload_url }}"
+            # Remove the template part
+            UPLOAD_URL=${UPLOAD_URL/\{\?name,label\}/}
+            curl -H "Authorization: token $GITHUB_TOKEN" \
+                 -H "Content-Type: application/vnd.android.package-archive" \
+                 --data-binary "@${{ steps.apk_path.outputs.path }}" \
+                 "$UPLOAD_URL?name=app-release.apk"
+          else
+            echo "APK file not found, skipping upload."
+            exit 1
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
